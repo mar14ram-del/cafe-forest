@@ -504,6 +504,12 @@
         <button class="btn" onclick="savePpBgUrl()">儲存</button>
         <button class="btn ghost" onclick="clearPpBgUrl()">改回預設</button>
       </div>
+      <div class="field-inline" style="margin-top:10px;">
+        <label class="inline-label">或自行上傳</label>
+        <input type="file" id="ppBgFile" accept="image/*">
+        <button class="btn ghost" onclick="uploadPpBgFile()">上傳並套用</button>
+      </div>
+      <div id="ppBgUploadMsg" class="sub" style="margin-top:4px;"></div>
       <div id="ppBgPreviewWrap" style="margin-top:12px;"></div>
 
       <!-- 隱藏獎勵規則 -->
@@ -1417,6 +1423,32 @@ async function savePpBgUrl(){
 async function clearPpBgUrl(){
   document.getElementById('ppBgUrl').value = '';
   await savePpBgUrl();
+}
+async function uploadPpBgFile(){
+  const input = document.getElementById('ppBgFile');
+  const file = input.files && input.files[0];
+  const msgEl = document.getElementById('ppBgUploadMsg');
+  if(!file){ showToast('請先選擇一張圖片'); return; }
+  if(!file.type || !file.type.startsWith('image/')){
+    msgEl.textContent = '請選擇圖片檔（jpg / png / webp 等）';
+    return;
+  }
+  msgEl.textContent = '上傳中…';
+  const ext = (file.name.split('.').pop() || 'jpg').toLowerCase().replace(/[^a-z0-9]/g,'') || 'jpg';
+  const path = `passport-bg/${Date.now()}.${ext}`;
+  const { error: upErr } = await sb.storage.from('site-photos')
+    .upload(path, file, { cacheControl: '3600', upsert: false });
+  if(upErr){
+    msgEl.textContent = '上傳失敗：' + upErr.message +
+      (/bucket/i.test(upErr.message) ? '（請先到 Supabase 執行 storage-setup.sql）' : '');
+    return;
+  }
+  const { data } = sb.storage.from('site-photos').getPublicUrl(path);
+  const publicUrl = data.publicUrl;
+  document.getElementById('ppBgUrl').value = publicUrl;
+  await savePpBgUrl();
+  input.value = '';
+  msgEl.textContent = '已上傳並套用！';
 }
 
 function renderPassportStats(){
