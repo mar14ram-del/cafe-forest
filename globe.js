@@ -166,21 +166,60 @@ function createGlobe(container, origins, opts = {}) {
 
   function renderPins() {
     pinGroup.innerHTML = '';
-    origins.forEach(o => {
-      if (o.lat === null || o.lon === null || o.lat === undefined || o.lon === undefined) return;
-      const p = project(Number(o.lat), Number(o.lon));
-      if (!p.visible) return;
+
+    // 先算出每個點的位置，依遠近排序：近的先放標籤，遠的碰到就讓位
+    const placed = [];
+    const items = origins
+      .filter(o => o.lat != null && o.lon != null)
+      .map(o => ({ o, p: project(Number(o.lat), Number(o.lon)) }))
+      .filter(it => it.p.visible)
+      .sort((a, b) => b.p.z - a.p.z);
+
+    items.forEach(({ o, p }) => {
       const scale = 0.5 + 0.5 * Math.max(0, p.z);
       const isSel = state.selected === o.id;
       const g = document.createElementNS(NS, 'g');
-      g.setAttribute('transform', `translate(${p.x},${p.y}) scale(${scale})`);
       g.style.cursor = 'pointer';
-      g.innerHTML = (isSel ? `
+
+      // 標記點本身
+      const pin = document.createElementNS(NS, 'g');
+      pin.setAttribute('transform', `translate(${p.x},${p.y}) scale(${scale})`);
+      pin.innerHTML = (isSel ? `
         <circle r="7" fill="none" stroke="#A9803F" stroke-width="1.4" opacity="0.6">
           <animate attributeName="r" values="6;16;6" dur="1.9s" repeatCount="indefinite"/>
           <animate attributeName="opacity" values="0.55;0;0.55" dur="1.9s" repeatCount="indefinite"/>
         </circle>` : '') +
         `<circle r="5" fill="${isSel ? '#A9803F' : '#7C5A3A'}" stroke="#FFFFFF" stroke-width="1.6"/>`;
+      g.appendChild(pin);
+
+      // 名稱標籤：太靠近球體邊緣就不放，避免糊成一團
+      const label = o.label || o.short || o.name || '';
+      if (label && (p.z > 0.28 || isSel)) {
+        const w = label.length * 10 + 6;      // 粗估寬度，用來擋重疊
+        const lx = p.x + 9 * scale;
+        const ly = p.y + 3.5;
+        const clash = placed.some(b =>
+          Math.abs(b.x - lx) < (b.w + w) / 2 && Math.abs(b.y - ly) < 15);
+
+        if (!clash || isSel) {
+          placed.push({ x: lx, y: ly, w });
+          const t = document.createElementNS(NS, 'text');
+          t.setAttribute('x', lx.toFixed(1));
+          t.setAttribute('y', ly.toFixed(1));
+          t.setAttribute('font-size', isSel ? '11' : '10');
+          t.setAttribute('font-family', "'JetBrains Mono','Inter',sans-serif");
+          t.setAttribute('font-weight', isSel ? '600' : '500');
+          t.setAttribute('fill', isSel ? '#A9803F' : '#5F5B54');
+          t.setAttribute('stroke', '#FFFFFF');       // 白色描邊，壓過底下的經緯線
+          t.setAttribute('stroke-width', '3.2');
+          t.setAttribute('paint-order', 'stroke');
+          t.setAttribute('stroke-linejoin', 'round');
+          t.setAttribute('opacity', isSel ? 1 : (0.45 + 0.55 * p.z).toFixed(2));
+          t.textContent = label;
+          g.appendChild(t);
+        }
+      }
+
       g.addEventListener('click', e => { e.stopPropagation(); flyTo(o.id); });
       pinGroup.appendChild(g);
     });

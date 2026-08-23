@@ -442,6 +442,7 @@ function initGlobe(){
     .filter(p => p.origin_lat !== null && p.origin_lon !== null && p.origin_country)
     .map(p => ({
       id: p.id, name: p.name, country: p.origin_country,
+      label: p.origin_country,
       lat: p.origin_lat, lon: p.origin_lon, blurb: p.origin_blurb
     }));
   if(!origins.length) return;
