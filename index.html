@@ -26,6 +26,13 @@
     --wood:#7C5A3A;
     --ok:#5C7A5C;
     --alert:#B0604C;
+    /* 護照書：分類蓋章顏色 */
+    --ink-continent:#2C4A6E;
+    --ink-country:#3D6B4F;
+    --ink-roast:#B0602C;
+    --ink-process:#6B4C8A;
+    --ink-flavor:#A13F3F;
+    --ink-member:#A9803F;
   }
   *{box-sizing:border-box;}
   html{scroll-behavior:smooth;}
@@ -188,6 +195,201 @@
   .pp-preview .line{font-size:12.5px;line-height:1.9;color:var(--ink-soft);}
   .pp-preview .line b{color:var(--ink);font-weight:500;}
   .pp-empty{font-size:12.5px;color:var(--ink-mute);line-height:1.8;}
+
+  /* ---------- 護照：資訊版／護照書 切換 ---------- */
+  .pp-tabs{display:flex;gap:6px;margin-bottom:14px;}
+  .pp-tab{
+    flex:1;text-align:center;padding:9px 6px;cursor:pointer;
+    border:1px solid var(--line);border-radius:2px;
+    background:linear-gradient(180deg,#FFFFFF,var(--paper-100));
+    font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.1em;
+    text-transform:uppercase;color:var(--ink-mute);
+  }
+  .pp-tab.on{
+    border-color:var(--gold-deep);color:var(--white);
+    background:linear-gradient(180deg,var(--gold),var(--gold-deep));
+  }
+
+  /* ---------- 護照書 ---------- */
+  .pp-book-preview{
+    margin-bottom:14px;padding:12px 14px;border-radius:2px;
+    border:1px solid #CFD8CF;background:linear-gradient(180deg,#FBFDFB,#EFF4EF);
+  }
+  .pp-book-preview h4{
+    font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.14em;
+    text-transform:uppercase;color:var(--ok);margin:0 0 7px;font-weight:400;
+  }
+  .pp-book-preview .line{font-size:12px;line-height:1.8;color:var(--ink-soft);}
+  .pp-book-preview .line b{color:var(--ink);font-weight:500;}
+
+  .pp-book{position:relative;}
+  .pp-book-stage{
+    position:relative;min-height:392px;perspective:1600px;
+    -webkit-perspective:1600px;
+  }
+  .pp-page{
+    position:relative;min-height:392px;border-radius:5px;
+    border:1px solid var(--line);overflow:hidden;
+    padding:22px 19px 18px;
+    background:
+      repeating-radial-gradient(circle at 18px 18px, rgba(43,42,40,.035) 0 1px, transparent 1px 26px),
+      linear-gradient(175deg,#FFFFFF,var(--paper-50) 60%,var(--paper-100));
+    box-shadow:0 3px 16px rgba(43,42,40,.09);
+    transform-origin:left center;
+  }
+  @media (prefers-reduced-motion: no-preference){
+    .pp-page.turn-next{animation:turnNext .38s cubic-bezier(.2,.7,.3,1) both;}
+    .pp-page.turn-prev{animation:turnPrev .38s cubic-bezier(.2,.7,.3,1) both;}
+    @keyframes turnNext{
+      0%{transform:rotateY(-14deg) scale(.95);opacity:.25;box-shadow:-18px 0 30px rgba(43,42,40,.18);}
+      100%{transform:rotateY(0) scale(1);opacity:1;box-shadow:0 3px 16px rgba(43,42,40,.09);}
+    }
+    @keyframes turnPrev{
+      0%{transform:rotateY(14deg) scale(.95);opacity:.25;box-shadow:18px 0 30px rgba(43,42,40,.18);}
+      100%{transform:rotateY(0) scale(1);opacity:1;box-shadow:0 3px 16px rgba(43,42,40,.09);}
+    }
+  }
+  .pp-page-eyebrow{
+    font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.18em;
+    text-transform:uppercase;color:var(--ink-mute);margin:0 0 4px;
+  }
+  .pp-page-title{
+    font-family:'Space Grotesk',sans-serif;font-size:15px;letter-spacing:.03em;
+    margin:0 0 16px;padding-bottom:12px;border-bottom:1px dashed var(--line);color:var(--ink);
+  }
+
+  /* 封面頁 */
+  .pp-page.cover{
+    background:
+      radial-gradient(120% 90% at 50% 0%, #3A362E 0%, #26231D 55%, #1C1A16 100%);
+    color:var(--paper-50);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    text-align:center;padding:34px 24px;
+  }
+  .pp-page.cover::before{
+    content:'';position:absolute;inset:14px;border:1px solid rgba(201,165,107,.55);border-radius:3px;pointer-events:none;
+  }
+  .pp-page.cover::after{
+    content:'';position:absolute;inset:19px;border:1px solid rgba(201,165,107,.28);border-radius:2px;pointer-events:none;
+  }
+  .cover-mark{width:40px;color:var(--gold);margin-bottom:20px;}
+  .cover-mark svg{width:100%;display:block;}
+  .cover-eyebrow{
+    font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.28em;
+    text-transform:uppercase;color:var(--gold);margin:0 0 14px;
+  }
+  .cover-title{
+    font-family:'Space Grotesk',sans-serif;font-size:22px;letter-spacing:.08em;
+    margin:0 0 8px;color:var(--paper-50);
+  }
+  .cover-sub{font-size:11.5px;letter-spacing:.1em;color:#C9C2B4;margin:0 0 26px;}
+  .cover-holder{
+    font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.06em;
+    color:var(--gold);border-top:1px solid rgba(201,165,107,.4);padding-top:14px;margin-top:6px;
+  }
+
+  /* 資料頁 */
+  .pp-bio-row{display:flex;gap:16px;margin-bottom:18px;}
+  .pp-bio-photo{
+    width:64px;height:64px;flex-shrink:0;border-radius:2px;
+    border:1px solid var(--line);background:linear-gradient(180deg,var(--paper-100),var(--paper-200));
+    display:flex;align-items:center;justify-content:center;color:var(--gold-deep);
+  }
+  .pp-bio-photo svg{width:28px;height:28px;}
+  .pp-bio-fields{flex:1;min-width:0;}
+  .pp-bio-field{margin-bottom:8px;}
+  .pp-bio-field .k{
+    font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.12em;
+    text-transform:uppercase;color:var(--ink-mute);
+  }
+  .pp-bio-field .v{font-size:13px;color:var(--ink);margin-top:2px;}
+  .pp-bio-stats{display:flex;gap:0;border-top:1px dashed var(--line);padding-top:14px;flex-wrap:wrap;}
+  .pp-bio-stats .pp-stat{flex:1;min-width:70px;margin-bottom:8px;}
+
+  /* 蓋章頁 */
+  .stamp-page-body{display:flex;flex-wrap:wrap;gap:14px 12px;align-content:flex-start;}
+  .ink-stamp{
+    --ic:var(--wood);
+    display:inline-flex;flex-direction:column;align-items:center;justify-content:center;
+    width:92px;height:92px;border-radius:50%;
+    border:2px solid var(--ic);color:var(--ic);
+    position:relative;text-align:center;padding:6px;
+    background:radial-gradient(circle at 50% 40%, color-mix(in srgb, var(--ic) 8%, transparent), transparent 70%);
+    mix-blend-mode:multiply;
+  }
+  .ink-stamp::before{
+    content:'';position:absolute;inset:5px;border:1px solid var(--ic);border-radius:50%;opacity:.55;
+  }
+  .ink-stamp .st-name{
+    font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:700;
+    letter-spacing:.02em;line-height:1.25;word-break:break-word;
+  }
+  .ink-stamp .st-n{
+    font-family:'JetBrains Mono',monospace;font-size:10px;margin-top:3px;opacity:.9;
+  }
+  .ink-stamp.new{border-style:dashed;opacity:.75;}
+  .ink-stamp.pending::after{
+    content:'+';position:absolute;top:-4px;right:-2px;width:18px;height:18px;border-radius:50%;
+    background:var(--ok);color:var(--white);font-family:'JetBrains Mono',monospace;font-size:12px;
+    display:flex;align-items:center;justify-content:center;mix-blend-mode:normal;
+  }
+  .stamp-page-empty{
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    min-height:220px;color:var(--ink-mute);text-align:center;gap:10px;
+  }
+  .stamp-page-empty .ghost{
+    width:80px;height:80px;border-radius:50%;border:2px dashed var(--line);
+  }
+  .stamp-page-empty p{font-size:12px;line-height:1.7;margin:0;max-width:22ch;}
+
+  /* 優惠券頁（會員專區） */
+  .pp-coupon-item{
+    border:1px solid var(--line);border-radius:2px;margin-bottom:10px;
+    background:linear-gradient(180deg,#FFFFFF,var(--paper-50));
+    padding:12px 13px;position:relative;overflow:hidden;
+  }
+  .pp-coupon-item::before{
+    content:'';position:absolute;top:0;left:0;bottom:0;width:4px;background:var(--ink-member);
+  }
+  .pp-coupon-item.used{opacity:.55;}
+  .pp-coupon-item.used::before{background:var(--ink-mute);}
+  .pp-coupon-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;}
+  .pp-coupon-code{
+    font-family:'JetBrains Mono',monospace;font-size:14px;letter-spacing:.05em;color:var(--ink);
+  }
+  .pp-coupon-badge{
+    font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.06em;
+    padding:2px 7px;border-radius:10px;white-space:nowrap;
+    background:linear-gradient(180deg,#FBFDFB,#EFF4EF);color:var(--ok);border:1px solid #CFD8CF;
+  }
+  .pp-coupon-badge.gray{color:var(--ink-mute);border-color:var(--line);background:var(--paper-100);}
+  .pp-coupon-desc{font-size:12.5px;color:var(--ink-soft);margin-top:6px;}
+  .pp-coupon-exp{
+    font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--ink-mute);margin-top:5px;
+  }
+  .pp-coupon-apply{
+    margin-top:9px;border:1px solid var(--gold-deep);border-radius:2px;background:none;
+    color:var(--gold-deep);font-family:inherit;font-size:11.5px;padding:6px 12px;cursor:pointer;
+  }
+  .pp-coupon-apply:hover{background:var(--gold-deep);color:var(--white);}
+  .pp-coupon-empty{font-size:12.5px;color:var(--ink-mute);line-height:1.8;text-align:center;padding:40px 10px;}
+
+  /* 翻頁控制列 */
+  .pp-book-nav{
+    display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:14px;
+  }
+  .pp-nav-btn{
+    width:36px;height:36px;border-radius:50%;border:1px solid var(--line);
+    background:linear-gradient(180deg,#FFFFFF,var(--paper-100));color:var(--ink-soft);
+    font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  }
+  .pp-nav-btn:hover:not(:disabled){border-color:var(--gold);color:var(--gold-deep);}
+  .pp-nav-btn:disabled{opacity:.3;cursor:default;}
+  .pp-dots{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;}
+  .pp-dot{
+    width:6px;height:6px;border-radius:50%;background:var(--line);cursor:pointer;padding:0;border:none;
+  }
+  .pp-dot.on{background:var(--gold-deep);width:16px;border-radius:3px;}
 
   /* ---------- 豆單 ---------- */
   .bean{
@@ -747,6 +949,16 @@ let ppTried = '';          // 上次查過的號碼，避免打字時重複查
 let ppDraft = '';          // 尚未送出的輸入值，重繪時保留
 let ppMsg   = '';          // 目前要顯示的訊息
 
+/* 護照書：資訊版／書本版切換、翻頁狀態 */
+let ppView = 'book';       // 'info' | 'book'
+let ppBookIndex = 0;
+let ppBookDir = '';        // 'next' | 'prev'，決定翻頁動畫方向
+
+/* 會員專區：我的優惠券（get_member_coupons） */
+let ppCoupons = null;
+let ppCouponsLoading = false;
+let ppCouponsError = '';
+
 const SCOPE_LABEL = {
   continent:'足跡 · 洲',
   country:'足跡 · 產地',
@@ -755,6 +967,10 @@ const SCOPE_LABEL = {
   flavor:'風味'
 };
 const SCOPE_ORDER = ['continent','country','roast','process','flavor'];
+const SCOPE_INK = {
+  continent:'var(--ink-continent)', country:'var(--ink-country)',
+  roast:'var(--ink-roast)', process:'var(--ink-process)', flavor:'var(--ink-flavor)'
+};
 
 function normPhone(s){ return String(s || '').replace(/\D/g, ''); }
 function maskPhone(s){
@@ -830,14 +1046,40 @@ async function lookupPassport(raw, quiet){
   ppData  = data.found ? data : null;
   ppMsg   = data.found ? '' : (data.reason || '');
   ppDraft = '';
+  ppBookIndex = 0; ppBookDir = '';
   try { localStorage.setItem(PP_KEY, phone); } catch(e){}
   const cp = document.getElementById('custPhone');
   if(cp && !cp.value.trim()) cp.value = String(src);
+  renderPassport();
+  if(data.found) loadMemberCoupons(phone);
+}
+
+/* 會員專區：查詢這支電話目前手上的優惠券／折價券 */
+async function loadMemberCoupons(phone){
+  ppCouponsLoading = true; ppCouponsError = ''; renderPassport();
+  const { data, error } = await sb.rpc('get_member_coupons', { p_phone: phone });
+  ppCouponsLoading = false;
+
+  if(error){
+    ppCoupons = null;
+    ppCouponsError = '優惠券清單還沒開通，請通知店家到 Supabase 執行 member-coupons.sql';
+    renderPassport();
+    return;
+  }
+  if(!data || !data.ok){
+    ppCoupons = null;
+    ppCouponsError = (data && data.reason) || '查詢優惠券失敗';
+    renderPassport();
+    return;
+  }
+  ppCoupons = data.coupons || [];
+  ppCouponsError = '';
   renderPassport();
 }
 
 function forgetPassport(){
   ppPhone = ''; ppData = null; ppTried = ''; ppMsg = ''; ppDraft = '';
+  ppCoupons = null; ppCouponsError = ''; ppBookIndex = 0;
   try { localStorage.removeItem(PP_KEY); } catch(e){}
   renderPassport();
 }
@@ -910,6 +1152,16 @@ function renderPassport(){
               <div class="stamps">${chips}</div></div>`;
   }).join('');
 
+  const tabsHtml = `
+    <div class="pp-tabs">
+      <div class="pp-tab ${ppView==='info'?'on':''}" onclick="setPpView('info')">資訊版</div>
+      <div class="pp-tab ${ppView==='book'?'on':''}" onclick="setPpView('book')">護照書</div>
+    </div>`;
+
+  const bodyHtml = ppView === 'book'
+    ? renderPassportBookHTML()
+    : (blocks || '<p class="pp-empty">還沒有可以顯示的章。</p>') + renderPreview();
+
   box.innerHTML = `
     <div class="pp-card">
       <div class="pp-head">
@@ -925,13 +1177,15 @@ function renderPassport(){
         <div class="pp-stat"><div class="n">${(ppData.stamps.country || []).length}</div><div class="l">個產地</div></div>
         <div class="pp-stat"><div class="n">${(ppData.stamps.flavor || []).length}</div><div class="l">種風味</div></div>
       </div>
-      ${blocks || '<p class="pp-empty">還沒有可以顯示的章。</p>'}
-      ${renderPreview()}
+      ${tabsHtml}
+      ${bodyHtml}
     </div>`;
+
+  if(ppView === 'book') bindBookSwipe();
 }
 
 /* 「這次會蓋上的章」— 勾了豆子才出現 */
-function renderPreview(){
+function previewParts(){
   const pend = pendingStamps();
   const parts = [];
   SCOPE_ORDER.forEach(scope => {
@@ -943,11 +1197,222 @@ function renderPreview(){
         : `<b>${esc(name)}</b> ${have} → ${have + add}`);
     });
   });
+  return parts;
+}
+function renderPreview(){
+  const parts = previewParts();
   if(!parts.length) return '';
   return `<div class="pp-preview">
       <h4>這次會蓋上的章</h4>
       <div class="line">${parts.join('　·　')}</div>
     </div>`;
+}
+
+function setPpView(v){
+  if(ppView === v) return;
+  ppView = v;
+  renderPassport();
+}
+
+/* ============================================================
+   護照書：封面 → 資料頁 → 各分類蓋章頁 → 我的優惠券
+   ============================================================ */
+function bookPages(){
+  const pages = [{ type:'cover' }, { type:'bio' }];
+  SCOPE_ORDER.forEach(scope => pages.push({ type:'stamps', scope }));
+  pages.push({ type:'coupons' });
+  return pages;
+}
+
+function renderPassportBookHTML(){
+  const pages = bookPages();
+  const idx = Math.max(0, Math.min(ppBookIndex, pages.length - 1));
+  const page = pages[idx];
+  const animCls = ppBookDir === 'next' ? 'turn-next' : ppBookDir === 'prev' ? 'turn-prev' : '';
+  const dots = pages.map((p,i) =>
+    `<button type="button" class="pp-dot ${i===idx?'on':''}" onclick="goBookPage(${i})" aria-label="第 ${i+1} 頁"></button>`
+  ).join('');
+  const parts = previewParts();
+  const previewHtml = parts.length
+    ? `<div class="pp-book-preview"><h4>這次會蓋上的章</h4><div class="line">${parts.join('　·　')}</div></div>`
+    : '';
+
+  return `
+    <div class="pp-book">
+      ${previewHtml}
+      <div class="pp-book-stage">
+        <div class="pp-page ${page.type==='cover'?'cover':''} ${animCls}">
+          ${renderBookPage(page)}
+        </div>
+      </div>
+      <div class="pp-book-nav">
+        <button type="button" class="pp-nav-btn" onclick="turnBook(-1)" ${idx===0?'disabled':''} aria-label="上一頁">‹</button>
+        <div class="pp-dots">${dots}</div>
+        <button type="button" class="pp-nav-btn" onclick="turnBook(1)" ${idx===pages.length-1?'disabled':''} aria-label="下一頁">›</button>
+      </div>
+    </div>`;
+}
+
+function renderBookPage(page){
+  if(page.type === 'cover')   return renderCoverPage();
+  if(page.type === 'bio')     return renderBioPage();
+  if(page.type === 'stamps')  return renderStampPage(page.scope);
+  if(page.type === 'coupons') return renderCouponPage();
+  return '';
+}
+
+function renderCoverPage(){
+  return `
+    <span class="cover-mark" aria-hidden="true">
+      <svg viewBox="0 0 244 696" xmlns="http://www.w3.org/2000/svg">
+        <path fill="currentColor" d="M0 0 L157 243 L79 243 L200 450 L107 450 L244 696 L0 696 Z"/>
+      </svg>
+    </span>
+    <p class="cover-eyebrow">City Forest Roastery</p>
+    <h3 class="cover-title">FLAVOR PASSPORT</h3>
+    <p class="cover-sub">風味護照 · CAFE FO+REST</p>
+    <div class="cover-holder">${ppData.display_name ? esc(ppData.display_name) : '持照人'} · ${maskPhone(ppPhone)}</div>`;
+}
+
+function renderBioPage(){
+  return `
+    <p class="pp-page-eyebrow">Data Page · 資料頁</p>
+    <h3 class="pp-page-title">持照人資訊</h3>
+    <div class="pp-bio-row">
+      <div class="pp-bio-photo" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 19c0-4 4-6 8-6s8 2 8 6"/><circle cx="12" cy="8" r="4"/>
+        </svg>
+      </div>
+      <div class="pp-bio-fields">
+        <div class="pp-bio-field"><div class="k">Holder · 持照人</div>
+          <div class="v">${ppData.display_name ? esc(ppData.display_name) : '匿名會員'}</div></div>
+        <div class="pp-bio-field"><div class="k">ID No. · 識別碼</div>
+          <div class="v">FR-${maskPhone(ppPhone)}</div></div>
+      </div>
+    </div>
+    <div class="pp-bio-stats">
+      <div class="pp-stat"><div class="n">${ppData.orders}</div><div class="l">次訂購</div></div>
+      <div class="pp-stat"><div class="n">${ppData.beans}</div><div class="l">包豆子</div></div>
+      <div class="pp-stat"><div class="n">${(ppData.stamps.country || []).length}</div><div class="l">個產地</div></div>
+      <div class="pp-stat"><div class="n">${(ppData.stamps.flavor || []).length}</div><div class="l">種風味</div></div>
+    </div>`;
+}
+
+function renderStampPage(scope){
+  const pend = pendingStamps();
+  const list = (ppData.stamps[scope] || []).slice();
+  const addNames = Object.keys(pend[scope] || {});
+  addNames.forEach(n => {
+    if(!list.some(x => x.name === n)) list.push({ name:n, count:0, isNew:true });
+  });
+  const ink = SCOPE_INK[scope];
+
+  if(!list.length){
+    return `
+      <p class="pp-page-eyebrow">Visa · 簽證頁</p>
+      <h3 class="pp-page-title">${SCOPE_LABEL[scope]}</h3>
+      <div class="stamp-page-empty">
+        <div class="ghost"></div>
+        <p>這一頁還是空白的，選幾支豆子送出訂單，就會蓋上第一個章。</p>
+      </div>`;
+  }
+
+  const chips = list.map((s,i) => {
+    const add = (pend[scope] || {})[s.name] || 0;
+    const rot = ((i * 37) % 17) - 8;   // 每個章有點自然的隨機角度
+    const cls = ['ink-stamp', s.isNew ? 'new' : '', (add > 0 && !s.isNew) ? 'pending' : '']
+      .filter(Boolean).join(' ');
+    return `<span class="${cls}" style="--ic:${ink};transform:rotate(${rot}deg);">
+        <span class="st-name">${esc(s.name)}</span>
+        <span class="st-n">${s.isNew ? '首次' : '× ' + s.count}</span>
+      </span>`;
+  }).join('');
+
+  return `
+    <p class="pp-page-eyebrow">Visa · 簽證頁</p>
+    <h3 class="pp-page-title">${SCOPE_LABEL[scope]}</h3>
+    <div class="stamp-page-body">${chips}</div>`;
+}
+
+/* 會員專區：我的優惠券（護照書最後一頁） */
+function renderCouponPage(){
+  let body;
+  if(ppCouponsLoading){
+    body = `<p class="pp-coupon-empty">查詢中…</p>`;
+  } else if(ppCouponsError){
+    body = `<p class="pp-coupon-empty">${esc(ppCouponsError)}</p>`;
+  } else if(!ppCoupons || !ppCoupons.length){
+    body = `<p class="pp-coupon-empty">目前沒有優惠券。<br>累積訂購或集滿護照上的紀錄，店家可能會發券給你。</p>`;
+  } else {
+    const today = new Date().toISOString().slice(0,10);
+    body = ppCoupons.map(c => {
+      const expired = c.expiry && c.expiry < today;
+      const usable  = c.status === '未使用' && !expired;
+      const badge = usable
+        ? `<span class="pp-coupon-badge">可使用</span>`
+        : c.status === '已使用'
+          ? `<span class="pp-coupon-badge gray">已使用</span>`
+          : `<span class="pp-coupon-badge gray">已過期</span>`;
+      const desc = c.kind === 'discount'
+        ? (c.discount_type === 'percent' ? `${esc(c.discount_value)} 折優惠` : `折抵 NT$${esc(c.discount_value)}`)
+        : `兌換：${esc(c.exchange_item || '')}`;
+      return `
+        <div class="pp-coupon-item ${usable ? '' : 'used'}">
+          <div class="pp-coupon-top">
+            <span class="pp-coupon-code">${esc(c.code)}</span>
+            ${badge}
+          </div>
+          <div class="pp-coupon-desc">${desc}</div>
+          ${c.expiry ? `<div class="pp-coupon-exp">效期至 ${esc(c.expiry)}</div>` : ''}
+          ${usable ? `<button type="button" class="pp-coupon-apply" data-code="${esc(c.code)}"
+                        onclick="applyCouponCode(this.dataset.code)">套用到這筆訂單</button>` : ''}
+        </div>`;
+    }).join('');
+  }
+
+  return `
+    <p class="pp-page-eyebrow">Member Zone · 會員專區</p>
+    <h3 class="pp-page-title">我的優惠券</h3>
+    ${body}`;
+}
+
+function applyCouponCode(code){
+  const input = document.getElementById('couponCode');
+  if(!input) return;
+  input.value = code;
+  applyCoupon();
+  input.scrollIntoView({ behavior:'smooth', block:'center' });
+}
+
+/* 翻頁與滑動手勢 */
+function goBookPage(i){
+  const total = bookPages().length;
+  if(i < 0 || i >= total || i === ppBookIndex) return;
+  ppBookDir = i > ppBookIndex ? 'next' : 'prev';
+  ppBookIndex = i;
+  renderPassport();
+}
+function turnBook(d){
+  goBookPage(ppBookIndex + d);
+}
+function bindBookSwipe(){
+  const stage = document.querySelector('.pp-book-stage');
+  if(!stage) return;
+  let sx = 0, sy = 0, active = false;
+  stage.addEventListener('touchstart', e => {
+    if(!e.touches.length) return;
+    sx = e.touches[0].clientX; sy = e.touches[0].clientY; active = true;
+  }, { passive:true });
+  stage.addEventListener('touchend', e => {
+    if(!active) return;
+    active = false;
+    const t = e.changedTouches[0];
+    const dx = t.clientX - sx, dy = t.clientY - sy;
+    if(Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy) * 1.5){
+      turnBook(dx < 0 ? 1 : -1);
+    }
+  }, { passive:true });
 }
 
 /* ---------- 豆單 ---------- */
