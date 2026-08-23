@@ -99,49 +99,95 @@
     content:'';width:16px;height:2px;background:var(--gold);flex-shrink:0;
   }
 
-  /* ---------- 地球 ---------- */
-  .globe-card{
-    position:relative;
-    background:radial-gradient(circle at 50% 42%, #FFFFFF 0%, var(--paper-50) 60%, var(--paper-200) 100%);
-    border:1px solid var(--line);border-radius:3px;
-    aspect-ratio:1/1;max-height:330px;margin:0 auto;
-  }
-  .globe-mount{width:100%;height:100%;}
-  .globe-hint{
-    position:absolute;top:11px;left:13px;
-    font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--ink-mute);
-    transition:opacity .35s;pointer-events:none;
-  }
-  .globe-hint.hide{opacity:0;}
-  .zoombar{
-    position:absolute;right:11px;bottom:11px;
-    display:flex;flex-direction:column;align-items:center;gap:6px;
-    background:linear-gradient(180deg,#FFFFFF,var(--paper-100));
-    border:1px solid var(--line);border-radius:20px;padding:8px 6px;
-  }
-  .zoombar button{
-    width:23px;height:23px;border-radius:50%;
-    border:1px solid var(--line);background:var(--white);
-    font-size:13px;line-height:1;cursor:pointer;color:var(--ink-soft);padding:0;
-    display:flex;align-items:center;justify-content:center;
-  }
-  .zoombar button:hover{border-color:var(--gold);color:var(--gold-deep);}
-  .zoombar input[type=range]{
-    writing-mode:vertical-lr;direction:rtl;width:15px;height:58px;accent-color:var(--gold-deep);
-  }
-  .zoombar .zlabel{
-    font-family:'JetBrains Mono',monospace;font-size:9.5px;color:var(--wood);cursor:pointer;
-  }
-  .globe-info{
+  /* ---------- 風味護照 ---------- */
+  .pp-card{
     background:linear-gradient(180deg,#FFFFFF,var(--paper-50));
-    border:1px solid var(--line);border-top:none;
-    padding:14px 16px;font-size:13px;line-height:1.75;color:var(--ink-soft);
+    border:1px solid var(--line);border-radius:3px;
+    padding:20px 20px 22px;position:relative;overflow:hidden;
   }
-  .globe-info .country{
-    font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.1em;
-    text-transform:uppercase;color:var(--gold-deep);margin:0 0 5px;
+  .pp-card::before{
+    content:'';position:absolute;top:0;left:0;right:0;height:2px;
+    background:linear-gradient(90deg,var(--gold),transparent 70%);
   }
-  .globe-info p{margin:0;}
+
+  /* 未登入：輸入電話 */
+  .pp-gate p.gate-lead{
+    margin:0 0 14px;font-size:13px;line-height:1.8;color:var(--ink-soft);
+  }
+  .pp-gate .gate-row{display:flex;gap:8px;}
+  .pp-gate input{flex:1;}
+  .pp-note{
+    font-size:11.5px;color:var(--ink-mute);line-height:1.7;margin:10px 0 0;
+  }
+
+  /* 護照抬頭 */
+  .pp-head{
+    display:flex;justify-content:space-between;align-items:flex-start;gap:10px;
+    padding-bottom:14px;border-bottom:1px solid var(--line);margin-bottom:16px;
+  }
+  .pp-title{
+    font-family:'Space Grotesk',sans-serif;font-size:16px;letter-spacing:.04em;margin:0 0 5px;
+  }
+  .pp-id{
+    font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.1em;
+    color:var(--gold-deep);
+  }
+  .pp-switch{
+    background:none;border:none;font-family:'JetBrains Mono',monospace;font-size:10.5px;
+    color:var(--ink-mute);cursor:pointer;padding:2px 0;text-decoration:underline;flex-shrink:0;
+  }
+  .pp-switch:hover{color:var(--gold-deep);}
+
+  .pp-stats{display:flex;gap:22px;margin-bottom:18px;flex-wrap:wrap;}
+  .pp-stat .n{
+    font-family:'JetBrains Mono',monospace;font-size:20px;color:var(--ink);line-height:1.2;
+  }
+  .pp-stat .l{font-size:11px;color:var(--ink-mute);margin-top:3px;}
+
+  /* 章 */
+  .pp-block{margin-top:18px;}
+  .pp-block h4{
+    font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.14em;
+    text-transform:uppercase;color:var(--ink-mute);margin:0 0 9px;font-weight:400;
+  }
+  .stamps{display:flex;flex-wrap:wrap;gap:7px;}
+  .stamp{
+    display:inline-flex;align-items:baseline;gap:7px;
+    padding:6px 11px;border:1px solid var(--line);border-radius:2px;
+    background:linear-gradient(180deg,#FFFFFF,var(--paper-100));
+    font-size:12.5px;color:var(--ink-soft);
+  }
+  .stamp .n{
+    font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--wood);
+  }
+  .stamp.hot{
+    border-color:#DCCBA8;color:var(--gold-deep);
+    background:linear-gradient(180deg,#FFFDF8,#F7F0E2);
+  }
+  .stamp.hot .n{color:var(--gold-deep);}
+  .stamp.up{
+    border-color:var(--ok);color:var(--ok);
+    background:linear-gradient(180deg,#FBFDFB,#EFF4EF);
+  }
+  .stamp.up .n{color:var(--ok);}
+  .stamp .plus{
+    font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--ok);
+  }
+  .stamp.first{border-style:dashed;border-color:var(--gold);color:var(--gold-deep);background:var(--white);}
+
+  /* 這次會蓋的章 */
+  .pp-preview{
+    margin-top:18px;padding:14px 15px;border-radius:2px;
+    border:1px solid #CFD8CF;
+    background:linear-gradient(180deg,#FBFDFB,#EFF4EF);
+  }
+  .pp-preview h4{
+    font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.14em;
+    text-transform:uppercase;color:var(--ok);margin:0 0 9px;font-weight:400;
+  }
+  .pp-preview .line{font-size:12.5px;line-height:1.9;color:var(--ink-soft);}
+  .pp-preview .line b{color:var(--ink);font-weight:500;}
+  .pp-empty{font-size:12.5px;color:var(--ink-mute);line-height:1.8;}
 
   /* ---------- 豆單 ---------- */
   .bean{
@@ -438,23 +484,10 @@
 
 <div class="wrap" id="formView">
 
-  <!-- 地球：頁面最上方 -->
-  <section id="originSection">
-    <h2 class="section-title">產地導覽</h2>
-    <div class="globe-card">
-      <div class="globe-mount" id="globeMount"></div>
-      <div class="globe-hint" id="globeHint">拖動旋轉 · 滾輪或兩指縮放</div>
-      <div class="zoombar">
-        <button type="button" onclick="zoomStep(0.2)" aria-label="放大">＋</button>
-        <input type="range" id="zRange" min="0.7" max="2.4" step="0.05" value="1"
-               oninput="mainGlobe && mainGlobe.setZoom(Number(this.value))" aria-label="縮放">
-        <div class="zlabel" id="zLabel" onclick="mainGlobe && mainGlobe.setZoom(1)">1.0×</div>
-        <button type="button" onclick="zoomStep(-0.2)" aria-label="縮小">－</button>
-      </div>
-    </div>
-    <div class="globe-info" id="globeInfo">
-      <p>轉動地球看看我們的豆子從哪裡來，或點下方豆單旁的「看產區」直接定位。</p>
-    </div>
+  <!-- 風味護照：頁面最上方 -->
+  <section id="passportSection">
+    <h2 class="section-title">風味護照</h2>
+    <div id="passportBox"></div>
   </section>
 
   <section>
@@ -492,7 +525,20 @@
     </div>
     <div class="field">
       <label class="field-label" for="custPhone">電話</label>
-      <input type="tel" id="custPhone" placeholder="0912-345-678">
+      <input type="tel" id="custPhone" placeholder="0912-345-678"
+             oninput="onPhoneTyped(this.value)">
+    </div>
+    <div class="field">
+      <label class="choice" style="cursor:pointer;" for="joinMember">
+        <input type="checkbox" id="joinMember" checked
+               style="width:16px;height:16px;accent-color:var(--gold-deep);margin:0;flex-shrink:0;">
+        <span>
+          <span class="choice-name">加入風味護照</span>
+          <span style="display:block;font-size:11.5px;color:var(--ink-mute);margin-top:3px;line-height:1.6;">
+            用這支電話累積走過的產地與喝過的風味，不需要另外註冊
+          </span>
+        </span>
+      </label>
     </div>
     <div class="field">
       <label class="field-label" for="note">備註（選填）</label>
@@ -559,7 +605,6 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="supabase-config.js"></script>
-<script src="globe.js"></script>
 <script>
 let products = [];
 let payments = [];
@@ -567,7 +612,6 @@ let qty = {};
 let delivery = 'pickup';
 let payMethod = null;
 let appliedCoupon = null;
-let mainGlobe = null;
 
 /* ---------- 啟動 ---------- */
 async function init(){
@@ -577,6 +621,7 @@ async function init(){
     return;
   }
   await Promise.all([loadProducts(), loadPayments()]);
+  restorePassport();
 }
 
 let tags = [];          // 所有標籤
@@ -671,7 +716,7 @@ async function loadProducts(){
   products = data || [];
   await loadTags();
   renderBeans();
-  initGlobe();
+  renderPassport();
 }
 
 async function loadPayments(){
@@ -687,33 +732,222 @@ async function loadPayments(){
   renderPayments();
 }
 
-/* ---------- 地球 ---------- */
-function initGlobe(){
-  const origins = products
-    .filter(p => p.origin_lat !== null && p.origin_lon !== null && p.origin_country)
-    .map(p => ({
-      id: p.id, name: p.name, country: p.origin_country,
-      label: p.origin_country,
-      lat: p.origin_lat, lon: p.origin_lon, blurb: p.origin_blurb
-    }));
-  if(!origins.length) return;
-  mainGlobe = createGlobe(document.getElementById('globeMount'), origins, {
-    onSelect: o => {
-      document.getElementById('globeInfo').innerHTML =
-        `<p class="country">${o.country}</p><p>${o.blurb || ''}</p>`;
-    },
-    onZoom: z => {
-      document.getElementById('zRange').value = z;
-      document.getElementById('zLabel').textContent = z.toFixed(1) + '×';
-    },
-    onDragStart: () => document.getElementById('globeHint').classList.add('hide')
-  });
+/* ============================================================
+   風味護照
+   ------------------------------------------------------------
+   身分＝電話號碼。護照資料由後端 get_passport() 回傳，
+   前台只拿得到統計數字與遮罩過的稱呼，拿不到訂單或地址。
+   ★ 獎勵門檻刻意不顯示，達標時由後台默默發券。
+   ============================================================ */
+const PP_KEY = 'forest_passport_phone';
+let ppPhone = '';          // 已查詢的號碼（正規化後）
+let ppData  = null;        // get_passport 回傳的資料
+let ppLoading = false;
+let ppTried = '';          // 上次查過的號碼，避免打字時重複查
+let ppDraft = '';          // 尚未送出的輸入值，重繪時保留
+let ppMsg   = '';          // 目前要顯示的訊息
+
+const SCOPE_LABEL = {
+  continent:'足跡 · 洲',
+  country:'足跡 · 產地',
+  roast:'烘焙度',
+  process:'處理法',
+  flavor:'風味'
+};
+const SCOPE_ORDER = ['continent','country','roast','process','flavor'];
+
+function normPhone(s){ return String(s || '').replace(/\D/g, ''); }
+function maskPhone(s){
+  const d = normPhone(s);
+  if(d.length < 6) return d;
+  return d.slice(0,4) + '＊＊＊' + d.slice(-3);
 }
-function zoomStep(d){ if(mainGlobe) mainGlobe.setZoom(mainGlobe.getZoom() + d); }
-function viewOrigin(id){
-  if(!mainGlobe) return;
-  document.getElementById('originSection').scrollIntoView({behavior:'smooth', block:'start'});
-  setTimeout(()=> mainGlobe.flyTo(id), 320);
+
+/* 這支豆子會蓋上哪些章 */
+function stampsOf(p){
+  const out = [];
+  if(p.origin_continent) out.push({ scope:'continent', name:p.origin_continent });
+  if(p.origin_country)   out.push({ scope:'country',   name:p.origin_country });
+  (tagMap[p.id] || []).forEach(t => {
+    if(['roast','process','flavor'].includes(t.kind)) out.push({ scope:t.kind, name:t.name });
+  });
+  return out;
+}
+
+/* 目前購物車會加上的章數 */
+function pendingStamps(){
+  const acc = {};
+  Object.keys(qty).forEach(id => {
+    const p = products.find(x => x.id === id);
+    if(!p) return;
+    stampsOf(p).forEach(s => {
+      acc[s.scope] = acc[s.scope] || {};
+      acc[s.scope][s.name] = (acc[s.scope][s.name] || 0) + qty[id];
+    });
+  });
+  return acc;
+}
+
+function haveCount(scope, name){
+  if(!ppData || !ppData.stamps) return 0;
+  const arr = ppData.stamps[scope] || [];
+  const hit = arr.find(x => x.name === name);
+  return hit ? Number(hit.count) : 0;
+}
+
+function restorePassport(){
+  let saved = '';
+  try { saved = localStorage.getItem(PP_KEY) || ''; } catch(e){}
+  if(saved){
+    document.getElementById('custPhone').value = saved;
+    lookupPassport(saved, true);
+  } else {
+    renderPassport();
+  }
+}
+
+function onPhoneTyped(v){
+  const d = normPhone(v);
+  if(d.length >= 9 && d !== ppPhone && d !== ppTried) lookupPassport(v, true);
+}
+
+async function lookupPassport(raw, quiet){
+  const src = raw != null ? raw : (document.getElementById('ppPhone')?.value || '');
+  const phone = normPhone(src);
+  if(phone.length < 8){
+    if(!quiet){ ppMsg = '請輸入完整的手機號碼'; renderPassport(); }
+    return;
+  }
+  ppTried = phone;
+  ppLoading = true; ppMsg = ''; renderPassport();
+  const { data, error } = await sb.rpc('get_passport', { p_phone: phone });
+  ppLoading = false;
+
+  if(error){ ppMsg = '查詢失敗：' + error.message; renderPassport(); return; }
+  if(!data || !data.ok){ ppMsg = (data && data.reason) || '查詢失敗'; renderPassport(); return; }
+
+  ppPhone = phone;
+  ppData  = data.found ? data : null;
+  ppMsg   = data.found ? '' : (data.reason || '');
+  ppDraft = '';
+  try { localStorage.setItem(PP_KEY, phone); } catch(e){}
+  const cp = document.getElementById('custPhone');
+  if(cp && !cp.value.trim()) cp.value = String(src);
+  renderPassport();
+}
+
+function forgetPassport(){
+  ppPhone = ''; ppData = null; ppTried = ''; ppMsg = ''; ppDraft = '';
+  try { localStorage.removeItem(PP_KEY); } catch(e){}
+  renderPassport();
+}
+
+function renderPassport(){
+  const box = document.getElementById('passportBox');
+  if(!box) return;
+  const msg = ppMsg;
+
+  /* 尚未查詢 → 輸入電話 */
+  if(!ppPhone){
+    const live = document.getElementById('ppPhone');
+    if(live) ppDraft = live.value;                 // 重繪前先記住已經打的字
+    box.innerHTML = `
+      <div class="pp-card pp-gate">
+        <p class="gate-lead">每買一支豆子，就在護照上蓋一個章。<br>
+          輸入手機號碼，看看你走過哪些產地、喝過哪些風味。</p>
+        <div class="gate-row">
+          <input type="tel" id="ppPhone" placeholder="0912-345-678" value="${esc(ppDraft)}"
+                 oninput="ppDraft=this.value"
+                 onkeydown="if(event.key==='Enter')lookupPassport()">
+          <button type="button" class="btn-apply" onclick="lookupPassport()">
+            ${ppLoading ? '查詢中…' : '翻開護照'}</button>
+        </div>
+        ${msg ? `<p class="pp-note" style="color:var(--alert);">${esc(msg)}</p>` : ''}
+        <p class="pp-note">第一次訂購完成後就會自動建立，不需要註冊或設密碼。</p>
+      </div>`;
+    return;
+  }
+
+  /* 查了但還沒有紀錄 */
+  if(!ppData){
+    box.innerHTML = `
+      <div class="pp-card">
+        <div class="pp-head">
+          <div>
+            <h3 class="pp-title">還是一本空白護照</h3>
+            <div class="pp-id">${maskPhone(ppPhone)}</div>
+          </div>
+          <button class="pp-switch" onclick="forgetPassport()">換號碼</button>
+        </div>
+        <p class="pp-empty">${esc(msg || '這支號碼還沒有紀錄。')}<br>
+          這次選好豆子送出訂單，第一個章就會蓋上去。</p>
+        ${renderPreview()}
+      </div>`;
+    return;
+  }
+
+  /* 正式護照 */
+  const pend = pendingStamps();
+  const blocks = SCOPE_ORDER.map(scope => {
+    const list = (ppData.stamps[scope] || []).slice();
+    const addNames = Object.keys(pend[scope] || {});
+    // 這次會第一次蓋到的章，也一起列出來（虛線＝首次）
+    addNames.forEach(n => {
+      if(!list.some(x => x.name === n)) list.push({ name:n, count:0, isNew:true });
+    });
+    if(!list.length) return '';
+    const max = Math.max(...list.map(x => Number(x.count) || 0));
+    const chips = list.map(s => {
+      const add = (pend[scope] || {})[s.name] || 0;
+      const cls = s.isNew ? 'first'
+                : add > 0 ? 'up'
+                : (max >= 3 && Number(s.count) === max) ? 'hot' : '';
+      return `<span class="stamp ${cls}">${esc(s.name)}
+        <span class="n">${s.isNew ? '首次' : '×' + s.count}</span>
+        ${add > 0 && !s.isNew ? `<span class="plus">+${add}</span>` : ''}</span>`;
+    }).join('');
+    return `<div class="pp-block"><h4>${SCOPE_LABEL[scope]}</h4>
+              <div class="stamps">${chips}</div></div>`;
+  }).join('');
+
+  box.innerHTML = `
+    <div class="pp-card">
+      <div class="pp-head">
+        <div>
+          <h3 class="pp-title">${ppData.display_name ? esc(ppData.display_name) + ' 的風味護照' : '你的風味護照'}</h3>
+          <div class="pp-id">FO+REST · ${maskPhone(ppPhone)}</div>
+        </div>
+        <button class="pp-switch" onclick="forgetPassport()">換號碼</button>
+      </div>
+      <div class="pp-stats">
+        <div class="pp-stat"><div class="n">${ppData.orders}</div><div class="l">次訂購</div></div>
+        <div class="pp-stat"><div class="n">${ppData.beans}</div><div class="l">包豆子</div></div>
+        <div class="pp-stat"><div class="n">${(ppData.stamps.country || []).length}</div><div class="l">個產地</div></div>
+        <div class="pp-stat"><div class="n">${(ppData.stamps.flavor || []).length}</div><div class="l">種風味</div></div>
+      </div>
+      ${blocks || '<p class="pp-empty">還沒有可以顯示的章。</p>'}
+      ${renderPreview()}
+    </div>`;
+}
+
+/* 「這次會蓋上的章」— 勾了豆子才出現 */
+function renderPreview(){
+  const pend = pendingStamps();
+  const parts = [];
+  SCOPE_ORDER.forEach(scope => {
+    Object.keys(pend[scope] || {}).forEach(name => {
+      const add  = pend[scope][name];
+      const have = haveCount(scope, name);
+      parts.push(have === 0
+        ? `<b>${esc(name)}</b> 第一次`
+        : `<b>${esc(name)}</b> ${have} → ${have + add}`);
+    });
+  });
+  if(!parts.length) return '';
+  return `<div class="pp-preview">
+      <h4>這次會蓋上的章</h4>
+      <div class="line">${parts.join('　·　')}</div>
+    </div>`;
 }
 
 /* ---------- 豆單 ---------- */
@@ -744,8 +978,8 @@ function renderBeans(){
         <div class="bean-meta">${esc(p.meta || '')}</div>
         <div class="bean-desc">${esc(p.description || '')}</div>
         ${chips ? `<div class="bean-tags">${chips}</div>` : ''}
-        ${p.origin_lat !== null && p.origin_country
-          ? `<div class="origin-link" onclick="viewOrigin('${p.id}')">看產區在地球上的位置 ↑</div>` : ''}
+        ${p.origin_country
+          ? `<a class="origin-link" href="origin-encyclopedia.html" style="text-decoration:none;">看 ${esc(p.origin_country)} 的產地介紹 →</a>` : ''}
         <div class="qty-row" id="qtyRow-${p.id}" style="display:${qty[p.id]?'flex':'none'};">
           <div class="qty-btn" onclick="changeQty('${p.id}',-1)">−</div>
           <div class="qty-val" id="qtyVal-${p.id}">${qty[p.id] || 1}</div>
@@ -808,7 +1042,10 @@ async function applyCoupon(){
   if(!code){ msg.textContent=''; appliedCoupon=null; renderSummary(); return; }
 
   msg.textContent = '確認中…'; msg.className = 'coupon-msg';
-  const { data, error } = await sb.rpc('check_coupon', { p_code: code });
+  const { data, error } = await sb.rpc('check_coupon', {
+    p_code: code,
+    p_phone: document.getElementById('custPhone').value.trim()
+  });
 
   if(error){
     msg.textContent = '無法確認代碼：' + error.message;
@@ -890,7 +1127,8 @@ async function submitOrder(){
     p_note: note,
     p_payment: payMethod || '',
     p_coupon_code: document.getElementById('couponCode').value.trim(),
-    p_items: ids.map(id => ({ product_id: id, qty: qty[id] }))
+    p_items: ids.map(id => ({ product_id: id, qty: qty[id] })),
+    p_join_member: document.getElementById('joinMember').checked
   });
 
   btn.disabled = false; btn.textContent = '送出訂購資訊';
@@ -910,6 +1148,15 @@ async function submitOrder(){
   document.getElementById('formView').style.display = 'none';
   document.getElementById('doneView').classList.add('show');
   window.scrollTo({top:0, behavior:'smooth'});
+
+  // 訂單完成後清空購物車並重抓護照，回到豆單時章已經蓋上
+  qty = {};
+  appliedCoupon = null;
+  updateCart();
+  if(document.getElementById('joinMember').checked){
+    ppTried = '';
+    lookupPassport(phone, true);
+  }
 }
 function showErr(m){
   const e = document.getElementById('errMsg');
@@ -920,8 +1167,8 @@ function showErr(m){
 
 function resetForm(){
   qty = {}; appliedCoupon = null;
-  ['custName','custPhone','address','note','couponCode'].forEach(id =>
-    document.getElementById(id).value = '');
+  ['custName','address','note','couponCode'].forEach(id =>
+    document.getElementById(id).value = '');   // 電話留著，護照才不會被登出
   document.getElementById('couponMsg').textContent = '';
   document.getElementById('errMsg').style.display = 'none';
   document.querySelectorAll('input[type=checkbox]').forEach(c => c.checked = false);
@@ -945,6 +1192,7 @@ function updateCart(){
   fab.classList.toggle('show', n > 0);
   if(n === 0) closeCart();
   renderCart();
+  renderPassport();     // 勾選改變時，護照上的「這次會蓋上的章」跟著更新
 }
 function renderCart(){
   const ids = Object.keys(qty);

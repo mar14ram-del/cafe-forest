@@ -337,6 +337,7 @@
     <button class="tab" data-panel="products">商品清單</button>
     <button class="tab" data-panel="tags">標籤管理</button>
     <button class="tab" data-panel="customers">客戶資料</button>
+    <button class="tab" data-panel="passport">風味護照<span class="tab-badge" id="grantBadge"></span></button>
     <button class="tab" data-panel="coupons">客戶回饋</button>
     <button class="tab" data-panel="payments">付款設定</button>
     <button class="tab" data-panel="finance">財務報表</button>
@@ -421,7 +422,7 @@
       <div class="table-wrap"><table>
         <thead><tr>
           <th>上架</th><th>名稱</th><th>標示</th><th>簡介</th><th>價格</th>
-          <th>產地國家</th><th>緯度</th><th>經度</th><th>產地介紹</th><th></th>
+          <th>洲</th><th>產地國家</th><th>緯度</th><th>經度</th><th>產地介紹</th><th></th>
         </tr></thead>
         <tbody id="productBody"></tbody>
       </table></div>
@@ -478,6 +479,62 @@
         <thead><tr><th>姓名</th><th>電話</th><th>訂單數</th><th>累計消費</th><th>等級</th><th>最後訂購</th></tr></thead>
         <tbody id="customerBody"></tbody>
       </table></div>
+    </section>
+
+    <!-- 風味護照 -->
+    <section class="panel" id="passport">
+      <div class="panel-head">
+        <div><h1 class="panel-title">風味護照</h1>
+          <div class="sub">客人看得到自己的章，看不到門檻。達標時系統默默發券，由你決定何時通知</div></div>
+        <div class="head-actions"><button class="btn ghost" onclick="loadPassport()">重新整理</button></div>
+      </div>
+      <div class="stat-row" id="passportStats"></div>
+
+      <!-- 隱藏獎勵規則 -->
+      <h2 style="font-family:'Space Grotesk',sans-serif;font-size:14px;margin:24px 0 4px;">
+        隱藏獎勵規則
+      </h2>
+      <div class="sub" style="margin-bottom:12px;">
+        例如「洲 · 非洲 · 滿 20 次」→ 客人累積到第 20 包非洲豆時，系統自動產生一張九折券
+      </div>
+      <div class="head-actions" style="margin-bottom:10px;">
+        <button class="btn" onclick="addRule()">＋ 新增規則</button>
+      </div>
+      <div class="table-wrap"><table>
+        <thead><tr>
+          <th>啟用</th><th>內部名稱</th><th>類別</th><th>目標</th><th>門檻</th><th>可重複</th>
+          <th>券種</th><th>折扣方式</th><th>數值</th><th>兌換品項</th><th>效期天數</th><th></th>
+        </tr></thead>
+        <tbody id="ruleBody"></tbody>
+      </table></div>
+      <div class="sub" style="margin-top:10px;">
+        「可重複」打開＝每滿一次門檻就再發一張（滿 20、40、60…）。次數以「買過的包數」計算。
+      </div>
+
+      <!-- 已自動發出的券 -->
+      <h2 style="font-family:'Space Grotesk',sans-serif;font-size:14px;margin:32px 0 10px;">
+        系統已發出的券
+      </h2>
+      <div class="table-wrap"><table>
+        <thead><tr>
+          <th>代碼</th><th>客戶</th><th>電話</th><th>觸發規則</th><th>第幾次達標</th>
+          <th>發出時間</th><th>已通知</th>
+        </tr></thead>
+        <tbody id="grantBody"></tbody>
+      </table></div>
+      <div class="sub" style="margin-top:10px;">
+        這些券前台不會顯示。請你私訊或通話告知代碼，勾起「已通知」方便追蹤。
+      </div>
+
+      <!-- 單一客戶護照 · 推薦用 -->
+      <h2 style="font-family:'Space Grotesk',sans-serif;font-size:14px;margin:32px 0 10px;">
+        看某位客人的護照
+      </h2>
+      <div class="field-inline">
+        <label class="inline-label">選擇客戶</label>
+        <select class="mini wide" id="ppCustomer" onchange="renderMemberPassport()"></select>
+      </div>
+      <div id="memberPassport" style="margin-top:14px;"></div>
     </section>
 
     <!-- 客戶回饋 -->
@@ -624,6 +681,7 @@ document.querySelectorAll('.tab').forEach(btn=>{
     if(id === 'beans' || id === 'supplies') loadMaterials();
     if(id === 'bom') { loadMaterials(); loadBom(); }
     if(id === 'tags') loadTags();
+    if(id === 'passport') loadPassport();
     if(id === 'finance') loadFinance();
   });
 });
@@ -634,6 +692,7 @@ async function loadAll(){
     loadCoupons(), loadPayments(), loadEmployees(), loadBom(), loadTags()
   ]);
   await loadFinance();
+  await loadPassport();
   renderBom();
   renderTagAssign();
   startOrderWatch();
@@ -777,6 +836,7 @@ function buildCustomers(){
       <td>${money(c.total)}</td><td><span class="badge ${tier}">${tier}</span></td><td>${t}</td></tr>`;
   }).join('');
   renderCoupons();
+  renderMemberPicker();
 }
 
 /* ---------- 物料（生豆／其他分開顯示） ---------- */
@@ -927,6 +987,10 @@ async function loadProducts(){
       <td><input class="cell" value="${esc(p.meta)}" onchange="saveProduct(${i},'meta',this.value)"></td>
       <td><textarea class="cell" rows="2" onchange="saveProduct(${i},'description',this.value)">${esc(p.description)}</textarea></td>
       <td><input class="cell" type="number" value="${p.price}" onchange="saveProduct(${i},'price',Number(this.value))"></td>
+      <td><select class="mini" onchange="saveProduct(${i},'origin_continent',this.value)">
+        ${['','非洲','中美洲','南美洲','亞洲','大洋洲'].map(o=>
+          `<option value="${o}" ${(p.origin_continent||'')===o?'selected':''}>${o||'—'}</option>`).join('')}
+      </select></td>
       <td><input class="cell" value="${esc(p.origin_country)}" onchange="saveProduct(${i},'origin_country',this.value)"></td>
       <td><input class="cell" type="number" step="0.1" value="${p.origin_lat ?? ''}" onchange="saveProduct(${i},'origin_lat',this.value===''?null:Number(this.value))"></td>
       <td><input class="cell" type="number" step="0.1" value="${p.origin_lon ?? ''}" onchange="saveProduct(${i},'origin_lon',this.value===''?null:Number(this.value))"></td>
@@ -1227,6 +1291,233 @@ async function removeTag(id, name, used){
   const { error } = await sb.from('tags').delete().eq('id', id);
   if(error) return showToast('刪除失敗');
   showToast('已刪除'); loadTags();
+}
+
+/* ============================================================
+   風味護照
+   ------------------------------------------------------------
+   後台這邊直接用已載入的訂單／商品／標籤在瀏覽器算，
+   跟前台看到的是同一套邏輯：次數 = 買過的包數。
+   ============================================================ */
+let rules = [], grants = [];
+const SCOPE_LABEL_A = {
+  continent:'洲', country:'產地國家', roast:'烘焙度', process:'處理法', flavor:'風味'
+};
+
+function normPhoneA(s){ return String(s || '').replace(/\D/g, ''); }
+
+/* 這支豆子帶哪些章 */
+function stampsOfProduct(pid){
+  const p = products.find(x => x.id === pid);
+  if(!p) return [];
+  const out = [];
+  if(p.origin_continent) out.push({ scope:'continent', name:p.origin_continent });
+  if(p.origin_country)   out.push({ scope:'country',   name:p.origin_country });
+  tagLinks.filter(l => l.product_id === pid).forEach(l => {
+    const t = tagList.find(x => x.id === l.tag_id);
+    if(t && ['roast','process','flavor'].includes(t.kind)) out.push({ scope:t.kind, name:t.name });
+  });
+  return out;
+}
+
+/* 某支電話的完整護照 */
+function passportOf(phone){
+  const key = normPhoneA(phone);
+  const acc = {};
+  orders.filter(o => normPhoneA(o.phone) === key).forEach(o => {
+    (o.order_items || []).forEach(it => {
+      stampsOfProduct(it.product_id).forEach(s => {
+        acc[s.scope] = acc[s.scope] || {};
+        acc[s.scope][s.name] = (acc[s.scope][s.name] || 0) + Number(it.qty || 0);
+      });
+    });
+  });
+  return acc;
+}
+
+/* 目標下拉選單的候選值 */
+function targetOptions(scope){
+  if(scope === 'continent')
+    return [...new Set(products.map(p => p.origin_continent).filter(Boolean))];
+  if(scope === 'country')
+    return [...new Set(products.map(p => p.origin_country).filter(Boolean))];
+  return tagList.filter(t => t.kind === scope).map(t => t.name);
+}
+
+async function loadPassport(){
+  const [a, b] = await Promise.all([
+    sb.from('reward_rules').select('*').order('id'),
+    sb.from('reward_grants').select('*').order('granted_at', { ascending:false })
+  ]);
+  if(a.error){
+    document.getElementById('ruleBody').innerHTML =
+      `<tr><td colspan="12" class="empty">還沒有建立護照資料表。請先到 Supabase 執行 passport.sql。</td></tr>`;
+    return;
+  }
+  rules  = a.data || [];
+  grants = b.data || [];
+  renderRules();
+  renderGrants();
+  renderPassportStats();
+  renderMemberPicker();
+}
+
+function renderPassportStats(){
+  const waiting = grants.filter(g => !g.notified).length;
+  const active  = rules.filter(r => r.enabled).length;
+  document.getElementById('passportStats').innerHTML = `
+    <div class="stat"><div class="num">${active}</div><div class="lbl">啟用中的規則</div></div>
+    <div class="stat"><div class="num">${grants.length}</div><div class="lbl">系統發出的券</div></div>
+    <div class="stat"><div class="num" style="color:${waiting?'var(--alert)':'var(--ok)'}">${waiting}</div>
+      <div class="lbl">待通知客人</div></div>`;
+  const badge = document.getElementById('grantBadge');
+  if(waiting > 0){ badge.textContent = waiting; badge.classList.add('show'); }
+  else badge.classList.remove('show');
+}
+
+function renderRules(){
+  document.getElementById('ruleBody').innerHTML = rules.map((r,i)=>{
+    const opts = targetOptions(r.scope);
+    const targetSel = opts.length
+      ? `<select class="mini" onchange="saveRule(${i},'target',this.value)">
+           ${opts.map(o=>`<option ${o===r.target?'selected':''}>${esc(o)}</option>`).join('')}
+           ${opts.includes(r.target)?'':`<option selected>${esc(r.target)}</option>`}
+         </select>`
+      : `<input class="cell" value="${esc(r.target)}" onchange="saveRule(${i},'target',this.value)">`;
+    return `<tr>
+      <td style="text-align:center;"><input type="checkbox" ${r.enabled?'checked':''}
+          style="accent-color:var(--gold-deep);" onchange="saveRule(${i},'enabled',this.checked)"></td>
+      <td><input class="cell" value="${esc(r.label)}" placeholder="非洲護照 20 次"
+                 onchange="saveRule(${i},'label',this.value)"></td>
+      <td><select class="mini" onchange="saveRule(${i},'scope',this.value)">
+        ${Object.keys(SCOPE_LABEL_A).map(k=>
+          `<option value="${k}" ${r.scope===k?'selected':''}>${SCOPE_LABEL_A[k]}</option>`).join('')}
+      </select></td>
+      <td>${targetSel}</td>
+      <td><input class="cell" type="number" min="1" value="${r.threshold}"
+                 onchange="saveRule(${i},'threshold',Number(this.value))"></td>
+      <td style="text-align:center;"><input type="checkbox" ${r.repeatable?'checked':''}
+          style="accent-color:var(--gold-deep);" onchange="saveRule(${i},'repeatable',this.checked)"></td>
+      <td><select class="mini" onchange="saveRule(${i},'kind',this.value)">
+        <option value="discount" ${r.kind==='discount'?'selected':''}>折扣券</option>
+        <option value="exchange" ${r.kind==='exchange'?'selected':''}>兌換券</option></select></td>
+      <td><select class="mini" ${r.kind!=='discount'?'disabled':''}
+                 onchange="saveRule(${i},'discount_type',this.value)">
+        <option value="percent" ${r.discount_type==='percent'?'selected':''}>打折</option>
+        <option value="fixed" ${r.discount_type==='fixed'?'selected':''}>折抵金額</option></select></td>
+      <td><input class="cell" type="number" value="${r.discount_value||0}" ${r.kind!=='discount'?'disabled':''}
+                 onchange="saveRule(${i},'discount_value',Number(this.value))"></td>
+      <td><input class="cell" value="${esc(r.exchange_item)}" ${r.kind!=='exchange'?'disabled':''}
+                 placeholder="免費一包耶加" onchange="saveRule(${i},'exchange_item',this.value)"></td>
+      <td><input class="cell" type="number" value="${r.valid_days||0}"
+                 onchange="saveRule(${i},'valid_days',Number(this.value))"></td>
+      <td><button class="btn danger" onclick="removeRule(${i})">刪除</button></td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="12" class="empty">還沒有設定任何獎勵規則</td></tr>';
+}
+
+async function saveRule(i, field, val){
+  const { error } = await sb.from('reward_rules').update({ [field]: val }).eq('id', rules[i].id);
+  if(error) return showToast('儲存失敗');
+  rules[i][field] = val;
+  showToast(); renderRules(); renderPassportStats();
+}
+async function addRule(){
+  const { error } = await sb.from('reward_rules').insert({
+    label:'新規則', scope:'continent', target: (targetOptions('continent')[0] || '非洲'),
+    threshold:20, repeatable:true, kind:'discount',
+    discount_type:'percent', discount_value:9, valid_days:90, enabled:false
+  });
+  if(error) return showToast('新增失敗');
+  showToast('已新增，預設是關閉的'); loadPassport();
+}
+async function removeRule(i){
+  if(!confirm('確定刪除規則「' + (rules[i].label || rules[i].target) + '」？已發出的券不會被收回。')) return;
+  const { error } = await sb.from('reward_rules').delete().eq('id', rules[i].id);
+  if(error) return showToast('刪除失敗');
+  showToast('已刪除'); loadPassport();
+}
+
+function renderGrants(){
+  document.getElementById('grantBody').innerHTML = grants.map((g,i)=>{
+    const r = rules.find(x => x.id === g.rule_id);
+    const c = coupons.find(x => x.code === g.coupon_code);
+    const t = new Date(g.granted_at).toLocaleString('zh-TW',
+      { month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit' });
+    return `<tr>
+      <td style="font-family:'JetBrains Mono',monospace;font-size:11.5px;">${esc(g.coupon_code)}</td>
+      <td>${esc(c ? c.customer_name : '')}</td>
+      <td style="font-family:'JetBrains Mono',monospace;font-size:11.5px;">${esc(g.phone)}</td>
+      <td>${esc(r ? (r.label || (SCOPE_LABEL_A[r.scope] + ' · ' + r.target)) : '（規則已刪除）')}</td>
+      <td style="text-align:center;">第 ${g.tier} 次</td>
+      <td>${t}</td>
+      <td style="text-align:center;"><input type="checkbox" ${g.notified?'checked':''}
+          style="accent-color:var(--gold-deep);" onchange="saveGrant(${i},this.checked)"></td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="7" class="empty">還沒有人達標</td></tr>';
+}
+async function saveGrant(i, val){
+  const { error } = await sb.from('reward_grants').update({ notified: val }).eq('id', grants[i].id);
+  if(error) return showToast('儲存失敗');
+  grants[i].notified = val; showToast(); renderPassportStats();
+}
+
+/* ---------- 單一客戶的護照與推薦 ---------- */
+function renderMemberPicker(){
+  const sel = document.getElementById('ppCustomer');
+  if(!sel) return;
+  if(!customers.length){
+    sel.innerHTML = '<option>尚無客戶</option>';
+    document.getElementById('memberPassport').innerHTML =
+      '<div class="empty">還沒有訂單資料</div>';
+    return;
+  }
+  const keep = sel.value;
+  sel.innerHTML = customers.map(c =>
+    `<option value="${esc(c.phone)}">${esc(c.name)}　${esc(c.phone)}</option>`).join('');
+  if(keep && customers.some(c => c.phone === keep)) sel.value = keep;
+  renderMemberPassport();
+}
+
+function renderMemberPassport(){
+  const sel = document.getElementById('ppCustomer');
+  const box = document.getElementById('memberPassport');
+  if(!sel || !box || !sel.value) return;
+  const phone = sel.value;
+  const pp = passportOf(phone);
+
+  const blocks = Object.keys(SCOPE_LABEL_A).map(scope => {
+    const entries = Object.entries(pp[scope] || {}).sort((a,b)=>b[1]-a[1]);
+    if(!entries.length) return '';
+    return `<div class="tag-kind-block">
+      <h4>${SCOPE_LABEL_A[scope]}</h4>
+      <div class="tag-list">
+        ${entries.map(([n,c]) =>
+          `<span class="tag-pill">${esc(n)}<span class="used">${c}</span></span>`).join('')}
+      </div></div>`;
+  }).join('');
+
+  // 推薦：他最愛的前 3 種風味，配上還沒買過、帶到這些風味的上架豆子
+  const topFlavors = Object.entries(pp.flavor || {}).sort((a,b)=>b[1]-a[1]).slice(0,3).map(x=>x[0]);
+  const bought = new Set();
+  orders.filter(o => normPhoneA(o.phone) === normPhoneA(phone))
+        .forEach(o => (o.order_items||[]).forEach(it => bought.add(it.product_id)));
+  const recs = products.filter(p =>
+    p.active && !bought.has(p.id) &&
+    stampsOfProduct(p.id).some(s => s.scope === 'flavor' && topFlavors.includes(s.name)));
+
+  const recHtml = !topFlavors.length ? ''
+    : `<div class="notice" style="margin-top:18px;">
+        <b>常喝的風味：</b>${topFlavors.map(esc).join('、')}<br>
+        <b>可以推薦：</b>${
+          recs.length
+            ? recs.map(p => esc(p.name) + '（' + stampsOfProduct(p.id)
+                .filter(s => s.scope==='flavor' && topFlavors.includes(s.name))
+                .map(s => esc(s.name)).join('、') + '）').join('　·　')
+            : '目前上架的豆子他都買過了'}
+      </div>`;
+
+  box.innerHTML = (blocks || '<div class="empty">這位客人還沒有可統計的章</div>') + recHtml;
 }
 
 /* ---------- 財務 ---------- */
