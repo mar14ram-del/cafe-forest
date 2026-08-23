@@ -33,6 +33,8 @@
     --ink-process:#6B4C8A;
     --ink-flavor:#A13F3F;
     --ink-member:#A9803F;
+    /* 風味護照的背景照片：想換照片只要改這一行 */
+    --pp-forest-photo: url('https://images.unsplash.com/photo-1761549789935-c3ac22f69fd3?fm=jpg&q=70&w=1200&auto=format&fit=crop');
   }
   *{box-sizing:border-box;}
   html{scroll-behavior:smooth;}
@@ -107,12 +109,21 @@
   }
 
   /* ---------- 風味護照 ---------- */
+  /* 外框：森林照片本尊，露出一圈當相框邊；.pp-sheet 是疊在上面的紙卡，
+     文字都寫在紙卡上，不管照片明暗都維持好讀。 */
   .pp-card{
+    background:var(--pp-forest-photo) center 38% / cover no-repeat;
+    background-color:var(--wood);       /* 照片載入失敗時的備援底色 */
+    border:1px solid var(--line);border-radius:6px;
+    padding:12px;position:relative;overflow:hidden;
+  }
+  .pp-sheet{
     background:linear-gradient(180deg,#FFFFFF,var(--paper-50));
     border:1px solid var(--line);border-radius:3px;
     padding:20px 20px 22px;position:relative;overflow:hidden;
+    box-shadow:0 8px 26px rgba(30,26,18,.22);
   }
-  .pp-card::before{
+  .pp-sheet::before{
     content:'';position:absolute;top:0;left:0;right:0;height:2px;
     background:linear-gradient(90deg,var(--gold),transparent 70%);
   }
@@ -1064,17 +1075,19 @@ function renderPassport(){
     if(live) ppDraft = live.value;                 // 重繪前先記住已經打的字
     box.innerHTML = `
       <div class="pp-card pp-gate">
-        <p class="gate-lead">每買一支豆子，就在護照上蓋一個章。<br>
-          輸入手機號碼，看看你走過哪些產地、喝過哪些風味。</p>
-        <div class="gate-row">
-          <input type="tel" id="ppPhone" placeholder="0912-345-678" value="${esc(ppDraft)}"
-                 oninput="ppDraft=this.value"
-                 onkeydown="if(event.key==='Enter')lookupPassport()">
-          <button type="button" class="btn-apply" onclick="lookupPassport()">
-            ${ppLoading ? '查詢中…' : '翻開護照'}</button>
+        <div class="pp-sheet">
+          <p class="gate-lead">每買一支豆子，就在護照上蓋一個章。<br>
+            輸入手機號碼，看看你走過哪些產地、喝過哪些風味。</p>
+          <div class="gate-row">
+            <input type="tel" id="ppPhone" placeholder="0912-345-678" value="${esc(ppDraft)}"
+                   oninput="ppDraft=this.value"
+                   onkeydown="if(event.key==='Enter')lookupPassport()">
+            <button type="button" class="btn-apply" onclick="lookupPassport()">
+              ${ppLoading ? '查詢中…' : '翻開護照'}</button>
+          </div>
+          ${msg ? `<p class="pp-note" style="color:var(--alert);">${esc(msg)}</p>` : ''}
+          <p class="pp-note">第一次訂購完成後就會自動建立，不需要註冊或設密碼。</p>
         </div>
-        ${msg ? `<p class="pp-note" style="color:var(--alert);">${esc(msg)}</p>` : ''}
-        <p class="pp-note">第一次訂購完成後就會自動建立，不需要註冊或設密碼。</p>
       </div>`;
     return;
   }
@@ -1083,16 +1096,18 @@ function renderPassport(){
   if(!ppData){
     box.innerHTML = `
       <div class="pp-card">
-        <div class="pp-head">
-          <div>
-            <h3 class="pp-title">還是一本空白護照</h3>
-            <div class="pp-id">${maskPhone(ppPhone)}</div>
+        <div class="pp-sheet">
+          <div class="pp-head">
+            <div>
+              <h3 class="pp-title">還是一本空白護照</h3>
+              <div class="pp-id">${maskPhone(ppPhone)}</div>
+            </div>
+            <button class="pp-switch" onclick="forgetPassport()">換號碼</button>
           </div>
-          <button class="pp-switch" onclick="forgetPassport()">換號碼</button>
+          <p class="pp-empty">${esc(msg || '這支號碼還沒有紀錄。')}<br>
+            這次選好豆子送出訂單，第一個章就會蓋上去。</p>
+          ${renderPreview()}
         </div>
-        <p class="pp-empty">${esc(msg || '這支號碼還沒有紀錄。')}<br>
-          這次選好豆子送出訂單，第一個章就會蓋上去。</p>
-        ${renderPreview()}
       </div>`;
     return;
   }
@@ -1110,21 +1125,23 @@ function renderPassport(){
 
   box.innerHTML = `
     <div class="pp-card">
-      <div class="pp-head">
-        <div>
-          <h3 class="pp-title">${ppData.display_name ? esc(ppData.display_name) + ' 的風味護照' : '你的風味護照'}</h3>
-          <div class="pp-id">FO+REST · ${maskPhone(ppPhone)}</div>
+      <div class="pp-sheet">
+        <div class="pp-head">
+          <div>
+            <h3 class="pp-title">${ppData.display_name ? esc(ppData.display_name) + ' 的風味護照' : '你的風味護照'}</h3>
+            <div class="pp-id">FO+REST · ${maskPhone(ppPhone)}</div>
+          </div>
+          <button class="pp-switch" onclick="forgetPassport()">換號碼</button>
         </div>
-        <button class="pp-switch" onclick="forgetPassport()">換號碼</button>
+        <div class="pp-stats">
+          <div class="pp-stat"><div class="n">${ppData.orders}</div><div class="l">次訂購</div></div>
+          <div class="pp-stat"><div class="n">${ppData.beans}</div><div class="l">包豆子</div></div>
+          <div class="pp-stat"><div class="n">${(ppData.stamps.country || []).length}</div><div class="l">個產地</div></div>
+          <div class="pp-stat"><div class="n">${(ppData.stamps.flavor || []).length}</div><div class="l">種風味</div></div>
+        </div>
+        ${tabsHtml}
+        ${bodyHtml}
       </div>
-      <div class="pp-stats">
-        <div class="pp-stat"><div class="n">${ppData.orders}</div><div class="l">次訂購</div></div>
-        <div class="pp-stat"><div class="n">${ppData.beans}</div><div class="l">包豆子</div></div>
-        <div class="pp-stat"><div class="n">${(ppData.stamps.country || []).length}</div><div class="l">個產地</div></div>
-        <div class="pp-stat"><div class="n">${(ppData.stamps.flavor || []).length}</div><div class="l">種風味</div></div>
-      </div>
-      ${tabsHtml}
-      ${bodyHtml}
     </div>`;
 
   if(ppView === 'book') bindBookSwipe();
