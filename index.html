@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CAFE FO+REST · 咖啡豆訂購</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    /* 白色系層次 */
+    --white:#FFFFFF;
+    --paper-50:#FDFCFA;
+    --paper-100:#F8F6F1;
+    --paper-200:#F1EEE7;
+    --paper-300:#E6E2D9;
+    --line:#DFDACF;
+    /* 文字 */
+    --ink:#2B2A28;
+    --ink-soft:#5F5B54;
+    --ink-mute:#8F8A80;
+    /* 重點色 */
+    --gold:#C9A56B;
+    --gold-deep:#A9803F;
+    --wood:#7C5A3A;
+    --ok:#5C7A5C;
+    --alert:#B0604C;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:
+      radial-gradient(120% 60% at 50% 0%, #FFFFFF 0%, var(--paper-100) 55%, var(--paper-200) 100%)
+      fixed;
+    color:var(--ink);
+    font-family:'Inter',-apple-system,'Noto Sans TC',sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:660px;margin:0 auto;padding:0 20px 96px;}
+
+  /* ---------- 頁首 ---------- */
+  header.hero{
+    background:linear-gradient(168deg,#FFFFFF 0%, var(--paper-50) 48%, var(--paper-200) 100%);
+    border-bottom:1px solid var(--line);
+    padding:44px 20px 30px;
+    text-align:center;
+    position:relative;
+    overflow:hidden;
+  }
+  header.hero::after{
+    content:'';position:absolute;left:50%;bottom:-1px;transform:translateX(-50%);
+    width:120px;height:2px;
+    background:linear-gradient(90deg,transparent,var(--gold),transparent);
+  }
+  .eyebrow{
+    font-family:'JetBrains Mono',monospace;
+    font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;
+    color:var(--gold-deep);margin:0 0 12px;
+  }
+  h1.brand{
+    font-family:'Space Grotesk',sans-serif;
+    font-size:32px;letter-spacing:.09em;font-weight:700;
+    margin:0 0 12px;color:var(--ink);
+  }
+  header.hero p.tagline{
+    margin:0 auto;font-size:14px;line-height:1.75;color:var(--ink-soft);max-width:34ch;
+  }
+  .enc-link{
+    display:inline-block;margin-top:16px;
+    font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.04em;
+    color:var(--gold-deep);text-decoration:none;
+    border-bottom:1px solid var(--gold);padding-bottom:2px;
+  }
+  .enc-link:hover{color:var(--wood);border-color:var(--wood);}
+
+  /* ---------- 區塊 ---------- */
+  section{padding:34px 0;border-bottom:1px solid var(--line);}
+  section:last-of-type{border-bottom:none;}
+  h2.section-title{
+    font-family:'Space Grotesk',sans-serif;
+    font-size:14px;letter-spacing:.1em;text-transform:uppercase;
+    margin:0 0 18px;color:var(--ink);
+    display:flex;align-items:center;gap:10px;
+  }
+  h2.section-title::before{
+    content:'';width:16px;height:2px;background:var(--gold);flex-shrink:0;
+  }
+
+  /* ---------- 地球 ---------- */
+  .globe-card{
+    position:relative;
+    background:radial-gradient(circle at 50% 42%, #FFFFFF 0%, var(--paper-50) 60%, var(--paper-200) 100%);
+    border:1px solid var(--line);border-radius:3px;
+    aspect-ratio:1/1;max-height:330px;margin:0 auto;
+  }
+  .globe-mount{width:100%;height:100%;}
+  .globe-hint{
+    position:absolute;top:11px;left:13px;
+    font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--ink-mute);
+    transition:opacity .35s;pointer-events:none;
+  }
+  .globe-hint.hide{opacity:0;}
+  .zoombar{
+    position:absolute;right:11px;bottom:11px;
+    display:flex;flex-direction:column;align-items:center;gap:6px;
+    background:linear-gradient(180deg,#FFFFFF,var(--paper-100));
+    border:1px solid var(--line);border-radius:20px;padding:8px 6px;
+  }
+  .zoombar button{
+    width:23px;height:23px;border-radius:50%;
+    border:1px solid var(--line);background:var(--white);
+    font-size:13px;line-height:1;cursor:pointer;color:var(--ink-soft);padding:0;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .zoombar button:hover{border-color:var(--gold);color:var(--gold-deep);}
+  .zoombar input[type=range]{
+    writing-mode:vertical-lr;direction:rtl;width:15px;height:58px;accent-color:var(--gold-deep);
+  }
+  .zoombar .zlabel{
+    font-family:'JetBrains Mono',monospace;font-size:9.5px;color:var(--wood);cursor:pointer;
+  }
+  .globe-info{
+    background:linear-gradient(180deg,#FFFFFF,var(--paper-50));
+    border:1px solid var(--line);border-top:none;
+    padding:14px 16px;font-size:13px;line-height:1.75;color:var(--ink-soft);
+  }
+  .globe-info .country{
+    font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.1em;
+    text-transform:uppercase;color:var(--gold-deep);margin:0 0 5px;
+  }
+  .globe-info p{margin:0;}
+
+  /* ---------- 豆單 ---------- */
+  .bean{
+    display:flex;gap:13px;align-items:flex-start;
+    padding:17px 0;border-top:1px solid var(--line);
+  }
+  .bean:first-of-type{border-top:none;padding-top:2px;}
+  .bean input[type=checkbox]{
+    width:18px;height:18px;margin-top:3px;accent-color:var(--gold-deep);flex-shrink:0;cursor:pointer;
+  }
+  .bean-info{flex:1;min-width:0;}
+  .bean-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;}
+  .bean-name{font-weight:600;font-size:15px;}
+  .bean-price{
+    font-family:'JetBrains Mono',monospace;font-size:14px;white-space:nowrap;color:var(--ink);
+  }
+  .bean-meta{
+    font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--wood);
+    margin:4px 0 6px;letter-spacing:.02em;
+  }
+  .bean-desc{font-size:12.5px;color:var(--ink-soft);line-height:1.65;}
+  .origin-link{
+    font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--gold-deep);
+    margin-top:9px;cursor:pointer;display:inline-block;
+  }
+  .origin-link:hover{color:var(--wood);}
+  .qty-row{display:flex;align-items:center;gap:9px;margin-top:11px;}
+  .qty-btn{
+    width:27px;height:27px;border:1px solid var(--line);
+    background:linear-gradient(180deg,#FFFFFF,var(--paper-100));
+    font-size:15px;cursor:pointer;color:var(--ink-soft);border-radius:2px;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .qty-btn:hover{border-color:var(--gold);color:var(--gold-deep);}
+  .qty-val{font-family:'JetBrains Mono',monospace;font-size:13px;min-width:22px;text-align:center;}
+
+  /* ---------- 表單 ---------- */
+  .field{margin-bottom:15px;}
+  label.field-label{
+    display:block;font-size:10.5px;font-family:'JetBrains Mono',monospace;
+    letter-spacing:.08em;text-transform:uppercase;color:var(--wood);margin:0 0 6px;
+  }
+  input[type=text],input[type=tel],textarea{
+    width:100%;padding:11px 13px;
+    border:1px solid var(--line);border-radius:2px;
+    background:linear-gradient(180deg,#FFFFFF,var(--paper-50));
+    font-family:inherit;font-size:14px;color:var(--ink);
+  }
+  input:focus,textarea:focus{outline:none;border-color:var(--gold);background:var(--white);}
+  textarea{resize:vertical;min-height:62px;}
+
+  .choice-group{display:flex;flex-direction:column;gap:8px;}
+  .choice{
+    border:1px solid var(--line);border-radius:2px;
+    background:linear-gradient(180deg,#FFFFFF,var(--paper-50));
+    padding:13px 15px;cursor:pointer;font-size:13.5px;
+    display:flex;align-items:center;gap:10px;
+  }
+  .choice:hover{border-color:var(--gold);}
+  .choice.active{
+    border-color:var(--gold-deep);
+    background:linear-gradient(180deg,#FFFDF8,#F7F0E2);
+  }
+  .choice .dot{
+    width:14px;height:14px;border-radius:50%;border:1px solid var(--line);
+    background:var(--white);flex-shrink:0;position:relative;
+  }
+  .choice.active .dot{border-color:var(--gold-deep);}
+  .choice.active .dot::after{
+    content:'';position:absolute;inset:3px;border-radius:50%;background:var(--gold-deep);
+  }
+  .choice-name{font-weight:500;}
+  .pay-detail{
+    border:1px solid var(--line);border-top:none;border-radius:0 0 2px 2px;
+    background:linear-gradient(180deg,var(--paper-50),#FFFFFF);
+    padding:15px;font-size:12.5px;line-height:1.75;color:var(--ink-soft);
+    display:none;
+  }
+  .pay-detail.show{display:block;}
+  .pay-detail .row{display:flex;gap:8px;padding:2px 0;}
+  .pay-detail .row b{color:var(--ink);font-weight:500;min-width:4.5em;}
+  .pay-detail img.qr{
+    display:block;margin:12px auto 6px;max-width:190px;width:100%;
+    border:1px solid var(--line);border-radius:2px;background:var(--white);padding:8px;
+  }
+  .pay-detail .qr-cap{
+    text-align:center;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--ink-mute);
+  }
+
+  /* ---------- 明細 ---------- */
+  .coupon-row{display:flex;gap:8px;}
+  .btn-apply{
+    padding:0 18px;border:1px solid var(--gold-deep);border-radius:2px;
+    background:linear-gradient(180deg,#FFFDF8,#F5EBD8);
+    color:var(--gold-deep);font-size:13px;cursor:pointer;white-space:nowrap;font-family:inherit;
+  }
+  .btn-apply:hover{background:var(--gold-deep);color:var(--white);}
+  .coupon-msg{font-size:12px;margin-top:7px;line-height:1.6;}
+  .coupon-msg.ok{color:var(--ok);}
+  .coupon-msg.err{color:var(--alert);}
+
+  .summary{
+    background:linear-gradient(180deg,#FFFFFF,var(--paper-50));
+    border:1px solid var(--line);border-radius:2px;padding:16px 17px;
+  }
+  .summary-row{display:flex;justify-content:space-between;gap:10px;font-size:13px;padding:5px 0;color:var(--ink-soft);}
+  .summary-row.total{
+    border-top:1px solid var(--line);margin-top:9px;padding-top:11px;
+    font-family:'JetBrains Mono',monospace;font-size:16px;color:var(--ink);
+  }
+  .empty-note{color:var(--ink-mute);font-size:13px;padding:6px 0;}
+
+  button.submit{
+    width:100%;padding:16px;margin-top:20px;
+    border:1px solid var(--gold-deep);border-radius:2px;
+    background:linear-gradient(180deg,var(--gold),var(--gold-deep));
+    color:var(--white);font-family:'Space Grotesk',sans-serif;
+    font-size:15px;letter-spacing:.06em;cursor:pointer;
+  }
+  button.submit:hover:not(:disabled){background:linear-gradient(180deg,var(--gold-deep),var(--wood));}
+  button.submit:disabled{
+    background:linear-gradient(180deg,var(--paper-100),var(--paper-200));
+    color:var(--ink-mute);border-color:var(--line);cursor:not-allowed;
+  }
+  .err{color:var(--alert);font-size:12.5px;margin-top:12px;display:none;line-height:1.6;}
+
+  /* ---------- 完成頁 ---------- */
+  .done{display:none;text-align:center;padding:70px 20px;}
+  .done.show{display:block;}
+  .done .code{
+    font-family:'JetBrains Mono',monospace;font-size:25px;letter-spacing:.07em;
+    color:var(--gold-deep);margin:14px 0 18px;
+  }
+  .done h2{font-family:'Space Grotesk',sans-serif;font-size:20px;margin:0 0 10px;}
+  .done p{color:var(--ink-soft);font-size:13px;line-height:1.8;margin:0;}
+  .done .pay-remind{
+    margin:22px auto 0;max-width:400px;text-align:left;
+    background:linear-gradient(180deg,#FFFFFF,var(--paper-50));
+    border:1px solid var(--line);border-radius:2px;padding:16px;
+    font-size:12.5px;line-height:1.75;color:var(--ink-soft);
+  }
+  .again{
+    margin-top:26px;border:1px solid var(--line);border-radius:2px;
+    background:linear-gradient(180deg,#FFFFFF,var(--paper-100));
+    color:var(--ink-soft);padding:11px 22px;font-size:13px;cursor:pointer;font-family:inherit;
+  }
+  .again:hover{border-color:var(--gold);color:var(--gold-deep);}
+
+  .loading{text-align:center;padding:60px 20px;color:var(--ink-mute);font-size:13px;}
+  .setup-warn{
+    margin:24px auto;max-width:620px;
+    background:linear-gradient(180deg,#FFFDF8,#F7F0E2);
+    border:1px solid var(--gold);border-radius:2px;padding:16px 18px;
+    font-size:13px;line-height:1.75;color:var(--wood);
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <p class="eyebrow">City Forest Roastery</p>
+  <h1 class="brand">CAFE FO+REST</h1>
+  <p class="tagline">在城市裡留一片森林。精選單一產區生豆，店內小批次烘焙。</p>
+  <a class="enc-link" href="origin-encyclopedia.html">看完整產地百科 →</a>
+</header>
+
+<div class="wrap" id="formView">
+
+  <!-- 地球：頁面最上方 -->
+  <section id="originSection">
+    <h2 class="section-title">產地導覽</h2>
+    <div class="globe-card">
+      <div class="globe-mount" id="globeMount"></div>
+      <div class="globe-hint" id="globeHint">拖動旋轉 · 滾輪或兩指縮放</div>
+      <div class="zoombar">
+        <button type="button" onclick="zoomStep(0.2)" aria-label="放大">＋</button>
+        <input type="range" id="zRange" min="0.7" max="2.4" step="0.05" value="1"
+               oninput="mainGlobe && mainGlobe.setZoom(Number(this.value))" aria-label="縮放">
+        <div class="zlabel" id="zLabel" onclick="mainGlobe && mainGlobe.setZoom(1)">1.0×</div>
+        <button type="button" onclick="zoomStep(-0.2)" aria-label="縮小">－</button>
+      </div>
+    </div>
+    <div class="globe-info" id="globeInfo">
+      <p>轉動地球看看我們的豆子從哪裡來，或點下方豆單旁的「看產區」直接定位。</p>
+    </div>
+  </section>
+
+  <section>
+    <h2 class="section-title">選擇咖啡豆</h2>
+    <div id="beanList"><div class="loading">載入豆單中…</div></div>
+  </section>
+
+  <section>
+    <h2 class="section-title">取貨方式</h2>
+    <div class="choice-group">
+      <div class="choice active" data-delivery="pickup" onclick="setDelivery('pickup')">
+        <span class="dot"></span><span class="choice-name">門市自取</span>
+      </div>
+      <div class="choice" data-delivery="delivery" onclick="setDelivery('delivery')">
+        <span class="dot"></span><span class="choice-name">宅配寄送</span>
+      </div>
+    </div>
+    <div class="field" id="addressField" style="display:none;margin-top:15px;">
+      <label class="field-label" for="address">寄送地址</label>
+      <input type="text" id="address" placeholder="請輸入完整寄送地址">
+    </div>
+  </section>
+
+  <section>
+    <h2 class="section-title">付款方式</h2>
+    <div id="payList"><div class="loading">載入中…</div></div>
+  </section>
+
+  <section>
+    <h2 class="section-title">聯絡資訊</h2>
+    <div class="field">
+      <label class="field-label" for="custName">姓名</label>
+      <input type="text" id="custName" placeholder="您的稱呼">
+    </div>
+    <div class="field">
+      <label class="field-label" for="custPhone">電話</label>
+      <input type="tel" id="custPhone" placeholder="0912-345-678">
+    </div>
+    <div class="field">
+      <label class="field-label" for="note">備註（選填）</label>
+      <textarea id="note" placeholder="研磨度、取貨時段偏好等"></textarea>
+    </div>
+  </section>
+
+  <section>
+    <h2 class="section-title">訂購明細</h2>
+    <div class="field">
+      <label class="field-label" for="couponCode">優惠券／兌換券代碼（選填）</label>
+      <div class="coupon-row">
+        <input type="text" id="couponCode" placeholder="輸入店家提供的代碼">
+        <button type="button" class="btn-apply" onclick="applyCoupon()">套用</button>
+      </div>
+      <div class="coupon-msg" id="couponMsg"></div>
+    </div>
+    <div class="summary" id="summary">
+      <div class="empty-note">尚未選擇豆子</div>
+    </div>
+    <div class="err" id="errMsg"></div>
+    <button class="submit" id="submitBtn" onclick="submitOrder()">送出訂購資訊</button>
+  </section>
+
+</div>
+
+<div class="wrap done" id="doneView">
+  <p class="eyebrow" style="color:var(--wood)">訂單已送出</p>
+  <div class="code" id="orderCode">#FR-000000</div>
+  <h2>謝謝你，我們收到訂單了</h2>
+  <p>我們會依照留下的聯絡方式與你確認細節。<br>訂單編號請留存，方便日後查詢。</p>
+  <div class="pay-remind" id="payRemind"></div>
+  <button class="again" onclick="resetForm()">再訂一筆</button>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="supabase-config.js"></script>
+<script src="globe.js"></script>
+<script>
+let products = [];
+let payments = [];
+let qty = {};
+let delivery = 'pickup';
+let payMethod = null;
+let appliedCoupon = null;
+let mainGlobe = null;
+
+/* ---------- 啟動 ---------- */
+async function init(){
+  if(!isConfigured()){
+    document.getElementById('formView').innerHTML =
+      `<div class="setup-warn">${configWarning()}</div>`;
+    return;
+  }
+  await Promise.all([loadProducts(), loadPayments()]);
+}
+
+async function loadProducts(){
+  const { data, error } = await sb.from('products')
+    .select('*').eq('active', true).order('sort_order');
+  if(error){
+    document.getElementById('beanList').innerHTML =
+      `<div class="empty-note">豆單載入失敗：${error.message}</div>`;
+    return;
+  }
+  products = data || [];
+  renderBeans();
+  initGlobe();
+}
+
+async function loadPayments(){
+  const { data, error } = await sb.from('payment_methods')
+    .select('*').eq('enabled', true).order('sort_order');
+  if(error){
+    document.getElementById('payList').innerHTML =
+      `<div class="empty-note">付款方式載入失敗：${error.message}</div>`;
+    return;
+  }
+  payments = data || [];
+  if(payments.length) payMethod = payments[0].id;
+  renderPayments();
+}
+
+/* ---------- 地球 ---------- */
+function initGlobe(){
+  const origins = products
+    .filter(p => p.origin_lat !== null && p.origin_lon !== null && p.origin_country)
+    .map(p => ({
+      id: p.id, name: p.name, country: p.origin_country,
+      lat: p.origin_lat, lon: p.origin_lon, blurb: p.origin_blurb
+    }));
+  if(!origins.length) return;
+  mainGlobe = createGlobe(document.getElementById('globeMount'), origins, {
+    onSelect: o => {
+      document.getElementById('globeInfo').innerHTML =
+        `<p class="country">${o.country}</p><p>${o.blurb || ''}</p>`;
+    },
+    onZoom: z => {
+      document.getElementById('zRange').value = z;
+      document.getElementById('zLabel').textContent = z.toFixed(1) + '×';
+    },
+    onDragStart: () => document.getElementById('globeHint').classList.add('hide')
+  });
+}
+function zoomStep(d){ if(mainGlobe) mainGlobe.setZoom(mainGlobe.getZoom() + d); }
+function viewOrigin(id){
+  if(!mainGlobe) return;
+  document.getElementById('originSection').scrollIntoView({behavior:'smooth', block:'start'});
+  setTimeout(()=> mainGlobe.flyTo(id), 320);
+}
+
+/* ---------- 豆單 ---------- */
+function renderBeans(){
+  const el = document.getElementById('beanList');
+  if(!products.length){ el.innerHTML = '<div class="empty-note">目前沒有上架中的豆子</div>'; return; }
+  el.innerHTML = products.map(p => `
+    <div class="bean">
+      <input type="checkbox" id="cb-${p.id}" onchange="toggleBean('${p.id}', this.checked)">
+      <div class="bean-info">
+        <div class="bean-top">
+          <div class="bean-name">${esc(p.name)}</div>
+          <div class="bean-price">NT$ ${p.price}</div>
+        </div>
+        <div class="bean-meta">${esc(p.meta || '')}</div>
+        <div class="bean-desc">${esc(p.description || '')}</div>
+        ${p.origin_lat !== null && p.origin_country
+          ? `<div class="origin-link" onclick="viewOrigin('${p.id}')">看產區在地球上的位置 ↑</div>` : ''}
+        <div class="qty-row" id="qtyRow-${p.id}" style="display:none;">
+          <div class="qty-btn" onclick="changeQty('${p.id}',-1)">−</div>
+          <div class="qty-val" id="qtyVal-${p.id}">1</div>
+          <div class="qty-btn" onclick="changeQty('${p.id}',1)">＋</div>
+        </div>
+      </div>
+    </div>`).join('');
+}
+function toggleBean(id, checked){
+  if(checked){ qty[id] = 1; document.getElementById('qtyRow-'+id).style.display='flex'; }
+  else { delete qty[id]; document.getElementById('qtyRow-'+id).style.display='none'; }
+  renderSummary();
+}
+function changeQty(id, d){
+  qty[id] = Math.max(1, (qty[id]||1) + d);
+  document.getElementById('qtyVal-'+id).textContent = qty[id];
+  renderSummary();
+}
+
+/* ---------- 取貨與付款 ---------- */
+function setDelivery(v){
+  delivery = v;
+  document.querySelectorAll('[data-delivery]').forEach(el =>
+    el.classList.toggle('active', el.dataset.delivery === v));
+  document.getElementById('addressField').style.display = v === 'delivery' ? 'block' : 'none';
+}
+
+function renderPayments(){
+  const el = document.getElementById('payList');
+  if(!payments.length){ el.innerHTML = '<div class="empty-note">尚未設定付款方式</div>'; return; }
+  el.innerHTML = payments.map(p => `
+    <div class="choice ${p.id===payMethod?'active':''}" data-pay="${p.id}" onclick="setPay('${p.id}')">
+      <span class="dot"></span><span class="choice-name">${esc(p.name)}</span>
+    </div>
+    <div class="pay-detail ${p.id===payMethod?'show':''}" id="payDetail-${p.id}">
+      ${p.bank    ? `<div class="row"><b>銀行</b><span>${esc(p.bank)}</span></div>` : ''}
+      ${p.branch  ? `<div class="row"><b>分行</b><span>${esc(p.branch)}</span></div>` : ''}
+      ${p.account ? `<div class="row"><b>帳號</b><span>${esc(p.account)}</span></div>` : ''}
+      ${p.holder  ? `<div class="row"><b>戶名</b><span>${esc(p.holder)}</span></div>` : ''}
+      ${p.qr_image_url ? `<img class="qr" src="${esc(p.qr_image_url)}" alt="${esc(p.qr_caption||'付款 QR Code')}">` : ''}
+      ${p.qr_image_url && p.qr_caption ? `<div class="qr-cap">${esc(p.qr_caption)}</div>` : ''}
+      ${p.note ? `<div style="margin-top:10px;">${esc(p.note)}</div>` : ''}
+    </div>`).join('');
+}
+function setPay(id){
+  payMethod = id;
+  document.querySelectorAll('[data-pay]').forEach(el =>
+    el.classList.toggle('active', el.dataset.pay === id));
+  payments.forEach(p =>
+    document.getElementById('payDetail-'+p.id).classList.toggle('show', p.id === id));
+}
+
+/* ---------- 優惠券 ---------- */
+async function applyCoupon(){
+  const code = document.getElementById('couponCode').value.trim();
+  const msg = document.getElementById('couponMsg');
+  if(!code){ msg.textContent=''; appliedCoupon=null; renderSummary(); return; }
+
+  msg.textContent = '確認中…'; msg.className = 'coupon-msg';
+  const { data, error } = await sb.rpc('check_coupon', { p_code: code });
+
+  if(error){
+    msg.textContent = '無法確認代碼：' + error.message;
+    msg.className = 'coupon-msg err';
+    appliedCoupon = null; renderSummary(); return;
+  }
+  if(!data || !data.ok){
+    msg.textContent = (data && data.reason) || '這個代碼無法使用';
+    msg.className = 'coupon-msg err';
+    appliedCoupon = null; renderSummary(); return;
+  }
+  appliedCoupon = data;
+  msg.textContent = data.kind === 'discount'
+    ? `已套用：${data.discount_type === 'percent' ? data.discount_value + ' 折' : '折抵 NT$' + data.discount_value}`
+    : `已套用兌換券：${data.exchange_item}`;
+  msg.className = 'coupon-msg ok';
+  renderSummary();
+}
+
+/* ---------- 明細 ---------- */
+function subtotalOf(){
+  return Object.keys(qty).reduce((s,id) => {
+    const p = products.find(x => x.id === id);
+    return s + (p ? Number(p.price) * qty[id] : 0);
+  }, 0);
+}
+function discountOf(sub){
+  if(!appliedCoupon || appliedCoupon.kind !== 'discount') return 0;
+  const raw = appliedCoupon.discount_type === 'percent'
+    ? sub * (1 - Number(appliedCoupon.discount_value) / 10)
+    : Number(appliedCoupon.discount_value);
+  return Math.min(sub, Math.max(0, Math.round(raw)));
+}
+function renderSummary(){
+  const ids = Object.keys(qty);
+  const box = document.getElementById('summary');
+  if(!ids.length){ box.innerHTML = '<div class="empty-note">尚未選擇豆子</div>'; return; }
+  const sub = subtotalOf();
+  const rows = ids.map(id => {
+    const p = products.find(x => x.id === id);
+    return `<div class="summary-row"><span>${esc(p.name)} × ${qty[id]}</span><span>NT$ ${Number(p.price)*qty[id]}</span></div>`;
+  }).join('');
+  let extra = '';
+  const dis = discountOf(sub);
+  if(dis > 0) extra += `<div class="summary-row" style="color:var(--ok)"><span>優惠券折抵</span><span>− NT$ ${dis}</span></div>`;
+  if(appliedCoupon && appliedCoupon.kind === 'exchange')
+    extra += `<div class="summary-row" style="color:var(--ok)"><span>兌換品項</span><span>${esc(appliedCoupon.exchange_item)}（免費）</span></div>`;
+  box.innerHTML = rows + extra +
+    `<div class="summary-row total"><span>應付總額</span><span>NT$ ${sub - dis}</span></div>`;
+}
+
+/* ---------- 送出 ---------- */
+async function submitOrder(){
+  const errEl = document.getElementById('errMsg');
+  const btn = document.getElementById('submitBtn');
+  const ids = Object.keys(qty);
+  const name = document.getElementById('custName').value.trim();
+  const phone = document.getElementById('custPhone').value.trim();
+  const address = document.getElementById('address').value.trim();
+  const note = document.getElementById('note').value.trim();
+
+  if(!ids.length){ return showErr('請至少選擇一款咖啡豆。'); }
+  if(!name || !phone){ return showErr('請填寫姓名與電話，我們才能與你聯繫。'); }
+  if(delivery === 'delivery' && !address){ return showErr('宅配需要填寫寄送地址。'); }
+
+  errEl.style.display = 'none';
+  btn.disabled = true; btn.textContent = '送出中…';
+
+  const { data, error } = await sb.rpc('place_order', {
+    p_customer_name: name,
+    p_phone: phone,
+    p_delivery: delivery,
+    p_address: address,
+    p_note: note,
+    p_payment: payMethod || '',
+    p_coupon_code: document.getElementById('couponCode').value.trim(),
+    p_items: ids.map(id => ({ product_id: id, qty: qty[id] }))
+  });
+
+  btn.disabled = false; btn.textContent = '送出訂購資訊';
+
+  if(error){ return showErr('送出失敗：' + error.message); }
+  if(!data || !data.ok){ return showErr((data && data.reason) || '送出失敗，請稍後再試。'); }
+
+  document.getElementById('orderCode').textContent = '#' + data.order_id;
+  const pay = payments.find(p => p.id === payMethod);
+  document.getElementById('payRemind').innerHTML = pay ? `
+    <div style="font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.1em;
+                text-transform:uppercase;color:var(--gold-deep);margin-bottom:8px;">付款方式 · ${esc(pay.name)}</div>
+    ${pay.account ? `<div>${esc(pay.bank)}　${esc(pay.account)}<br>戶名：${esc(pay.holder)}</div>` : ''}
+    ${pay.note ? `<div style="margin-top:8px;">${esc(pay.note)}</div>` : ''}
+    <div style="margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--ink);">
+      應付金額 NT$ ${data.total}</div>` : '';
+  document.getElementById('formView').style.display = 'none';
+  document.getElementById('doneView').classList.add('show');
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+function showErr(m){
+  const e = document.getElementById('errMsg');
+  e.textContent = m; e.style.display = 'block';
+  document.getElementById('submitBtn').disabled = false;
+  document.getElementById('submitBtn').textContent = '送出訂購資訊';
+}
+
+function resetForm(){
+  qty = {}; appliedCoupon = null;
+  ['custName','custPhone','address','note','couponCode'].forEach(id =>
+    document.getElementById(id).value = '');
+  document.getElementById('couponMsg').textContent = '';
+  document.getElementById('errMsg').style.display = 'none';
+  document.querySelectorAll('input[type=checkbox]').forEach(c => c.checked = false);
+  document.querySelectorAll('.qty-row').forEach(r => r.style.display = 'none');
+  setDelivery('pickup');
+  renderSummary();
+  document.getElementById('doneView').classList.remove('show');
+  document.getElementById('formView').style.display = 'block';
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function esc(s){
+  return String(s ?? '').replace(/[&<>"']/g, c =>
+    ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+init();
+</script>
+
+</body>
+</html>
