@@ -54,6 +54,17 @@
     width:120px;height:2px;
     background:linear-gradient(90deg,transparent,var(--gold),transparent);
   }
+  .logo-mark{
+    display:block;width:34px;margin:0 auto 18px;color:var(--gold);
+  }
+  .logo-mark svg{width:100%;height:auto;display:block;}
+  @media (prefers-reduced-motion: no-preference){
+    .logo-mark{animation:logoRise .8s cubic-bezier(.2,.7,.3,1) both;}
+    @keyframes logoRise{
+      from{opacity:0;transform:translateY(8px) scaleY(.9);transform-origin:bottom;}
+      to{opacity:1;transform:none;}
+    }
+  }
   .eyebrow{
     font-family:'JetBrains Mono',monospace;
     font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;
@@ -291,6 +302,11 @@
 <body>
 
 <header class="hero">
+  <span class="logo-mark" aria-hidden="true">
+    <svg viewBox="0 0 244 696" xmlns="http://www.w3.org/2000/svg">
+      <path fill="currentColor" d="M0 0 L157 243 L79 243 L200 450 L107 450 L244 696 L0 696 Z"/>
+    </svg>
+  </span>
   <p class="eyebrow">City Forest Roastery</p>
   <h1 class="brand">CAFE FO+REST</h1>
   <p class="tagline">在城市裡留一片森林。精選單一產區生豆，店內小批次烘焙。</p>

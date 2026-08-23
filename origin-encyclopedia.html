@@ -31,6 +31,9 @@
     width:110px;height:2px;background:linear-gradient(90deg,transparent,var(--gold),transparent);
   }
   header .inner{max-width:1000px;margin:0 auto;}
+  .head-row{display:flex;align-items:flex-start;gap:14px;}
+  .logo-mark{display:block;width:24px;flex-shrink:0;color:var(--gold);margin-top:2px;}
+  .logo-mark svg{width:100%;height:auto;display:block;}
   .eyebrow{
     font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.2em;
     text-transform:uppercase;color:var(--gold-deep);margin:0 0 10px;
@@ -126,8 +129,17 @@
 
 <header class="hero">
   <div class="inner">
-    <p class="eyebrow">Origin Encyclopedia</p>
-    <h1>咖啡產地百科</h1>
+    <div class="head-row">
+      <span class="logo-mark" aria-hidden="true">
+        <svg viewBox="0 0 244 696" xmlns="http://www.w3.org/2000/svg">
+          <path fill="currentColor" d="M0 0 L157 243 L79 243 L200 450 L107 450 L244 696 L0 696 Z"/>
+        </svg>
+      </span>
+      <div>
+        <p class="eyebrow">Origin Encyclopedia</p>
+        <h1>咖啡產地百科</h1>
+      </div>
+    </div>
     <p>拖動地球旋轉，捲動滾輪或用兩指縮放，點選任一產區看風味與產區故事。標有綠點的產區，代表本店目前有供應該產區的豆子。</p>
     <a class="back" href="index.html">← 回到訂購頁</a>
   </div>
@@ -219,8 +231,24 @@ function renderInfo(o){
     ${stocked ? '<div class="instock">● 本店目前有供應這個產區的豆子</div>' : ''}`;
 }
 function highlight(id){
-  document.querySelectorAll('.region-item').forEach(el =>
-    el.classList.toggle('active', el.dataset.id === id));
+  let target = null;
+  document.querySelectorAll('.region-item').forEach(el => {
+    const on = el.dataset.id === id;
+    el.classList.toggle('active', on);
+    if(on) target = el;
+  });
+  // 讓對應的項目捲進清單可視範圍，但不牽動整個頁面
+  if(target){
+    const box = document.getElementById('regionList');
+    const t = target.getBoundingClientRect();
+    const b = box.getBoundingClientRect();
+    if(t.top < b.top || t.bottom > b.bottom){
+      box.scrollTo({
+        top: box.scrollTop + (t.top - b.top) - (b.height - t.height) / 2,
+        behavior: 'smooth'
+      });
+    }
+  }
 }
 function renderList(){
   document.getElementById('regionList').innerHTML = ORIGINS.map(o=>`

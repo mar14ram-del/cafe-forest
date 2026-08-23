@@ -32,6 +32,7 @@
     background:linear-gradient(180deg,#FFFFFF,var(--paper-50));
     border:1px solid var(--line);border-radius:3px;padding:32px 28px;
   }
+  .login-logo{width:26px;margin:0 auto 16px;display:block;}
   .login-box .eyebrow{
     font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.2em;
     text-transform:uppercase;color:var(--gold-deep);margin:0 0 10px;text-align:center;
@@ -65,8 +66,12 @@
   }
   header.bar .brand{
     font-family:'Space Grotesk',sans-serif;font-size:15px;letter-spacing:.08em;
+    display:flex;align-items:center;gap:10px;
   }
-  header.bar .brand span{color:var(--gold-deep);}
+  header.bar .brand .accent{color:var(--gold-deep);}
+  .logo-mark{display:inline-block;width:15px;flex-shrink:0;color:var(--gold);line-height:0;}
+  .logo-mark svg{width:100%;height:auto;display:block;}
+  .bar-actions{display:flex;gap:8px;align-items:center;}
   .signout{
     border:1px solid var(--line);border-radius:2px;
     background:linear-gradient(180deg,#FFFFFF,var(--paper-100));
@@ -85,6 +90,23 @@
   }
   nav button:hover{color:var(--ink-soft);}
   nav button.active{color:var(--ink);border-bottom-color:var(--gold-deep);}
+
+  .tab-badge{
+    display:none;min-width:17px;height:17px;padding:0 5px;margin-left:6px;
+    border-radius:9px;background:linear-gradient(180deg,#C08A4A,#A9803F);
+    color:#FFFFFF;font-family:'JetBrains Mono',monospace;font-size:10px;
+    line-height:17px;text-align:center;vertical-align:middle;
+    box-shadow:0 1px 4px rgba(169,128,63,.35);
+  }
+  .tab-badge.show{display:inline-block;animation:badgePop .32s ease-out;}
+  @keyframes badgePop{
+    0%{transform:scale(.5);opacity:0;}
+    60%{transform:scale(1.15);}
+    100%{transform:scale(1);opacity:1;}
+  }
+  @media (prefers-reduced-motion: reduce){
+    .tab-badge.show{animation:none;}
+  }
 
   main{max-width:1000px;margin:0 auto;padding:26px 18px 90px;}
   .panel{display:none;}
@@ -241,6 +263,11 @@
 <!-- 登入畫面 -->
 <div class="login-screen" id="loginScreen">
   <div class="login-box">
+    <span class="logo-mark login-logo" aria-hidden="true">
+      <svg viewBox="0 0 244 696" xmlns="http://www.w3.org/2000/svg">
+        <path fill="currentColor" d="M0 0 L157 243 L79 243 L200 450 L107 450 L244 696 L0 696 Z"/>
+      </svg>
+    </span>
     <p class="eyebrow">Staff Only</p>
     <h1>CAFE FO+REST 後台</h1>
     <input type="email" id="loginEmail" placeholder="電子郵件" autocomplete="username">
@@ -254,12 +281,22 @@
 <!-- 後台主體 -->
 <div id="app">
   <header class="bar">
-    <div class="brand">CAFE <span>FO+REST</span> · 後台</div>
-    <button class="signout" onclick="signOut()">登出</button>
+    <div class="brand">
+      <span class="logo-mark" aria-hidden="true">
+        <svg viewBox="0 0 244 696" xmlns="http://www.w3.org/2000/svg">
+          <path fill="currentColor" d="M0 0 L157 243 L79 243 L200 450 L107 450 L244 696 L0 696 Z"/>
+        </svg>
+      </span>
+      CAFE <span class="accent">FO+REST</span> · 後台
+    </div>
+    <div class="bar-actions">
+      <button class="signout" id="soundBtn" onclick="toggleSound()" title="新訂單提示音">🔔 提示音：開</button>
+      <button class="signout" onclick="signOut()">登出</button>
+    </div>
   </header>
 
   <nav>
-    <button class="tab active" data-panel="orders">訂單</button>
+    <button class="tab active" data-panel="orders">訂單<span class="tab-badge" id="pendingBadge"></span></button>
     <button class="tab" data-panel="beans">生豆庫存</button>
     <button class="tab" data-panel="supplies">其他庫存</button>
     <button class="tab" data-panel="bom">用料設定</button>
@@ -447,6 +484,7 @@
 <script>
 let orders = [], customers = [], materials = [], products = [],
     coupons = [], payments = [], employees = [], expenses = [];
+let orderWatcher = null;
 
 /* ---------- 登入 ---------- */
 async function boot(){
@@ -485,7 +523,11 @@ async function signIn(){
   document.getElementById('loginPassword').value = '';
   showApp();
 }
-async function signOut(){ await sb.auth.signOut(); location.reload(); }
+async function signOut(){
+  if(orderWatcher) clearInterval(orderWatcher);
+  await sb.auth.signOut();
+  location.reload();
+}
 
 /* ---------- 共用 ---------- */
 function showToast(m){
@@ -521,6 +563,7 @@ async function loadAll(){
   ]);
   await loadFinance();
   renderBom();
+  startOrderWatch();
 }
 
 /* ---------- 訂單 ---------- */
@@ -536,9 +579,26 @@ async function loadOrders(){
   renderOrders();
   buildCustomers();
 }
+function updatePendingBadge(){
+  const pending = orders.filter(o => o.status === '待處理').length;
+  const badge = document.getElementById('pendingBadge');
+  if(pending > 0){
+    badge.textContent = pending > 99 ? '99+' : pending;
+    badge.classList.add('show');
+    badge.title = `有 ${pending} 筆訂單待處理`;
+    document.title = `(${pending}) 後台 · CAFE FO+REST`;
+  } else {
+    badge.textContent = '';
+    badge.classList.remove('show');
+    badge.title = '';
+    document.title = '後台 · CAFE FO+REST';
+  }
+}
+
 function renderOrders(){
   const list = document.getElementById('orderList');
   const stats = document.getElementById('orderStats');
+  updatePendingBadge();
   if(!orders.length){
     list.innerHTML = '<div class="empty">目前還沒有訂單。<br>到下單頁送出一筆試試看。</div>';
     stats.innerHTML = ''; return;
@@ -1022,6 +1082,73 @@ async function addExpense(){
     .insert({ name:'新支出項目', category:'其他', spent_on:new Date().toISOString().slice(0,10), amount:0 });
   if(error) return showToast('新增失敗');
   showToast('已新增'); loadFinance();
+}
+
+/* ---------- 新訂單提示音 ---------- */
+let soundOn = true;
+try { soundOn = localStorage.getItem('cf_sound') !== 'off'; } catch(e) {}
+
+function toggleSound(){
+  soundOn = !soundOn;
+  try { localStorage.setItem('cf_sound', soundOn ? 'on' : 'off'); } catch(e) {}
+  const b = document.getElementById('soundBtn');
+  if(b) b.textContent = soundOn ? '🔔 提示音：開' : '🔕 提示音：關';
+  if(soundOn) playChime();          // 開啟時響一次讓你確認音量
+}
+
+/* 用瀏覽器內建的音訊功能合成，不需要額外的音檔 */
+function playChime(){
+  if(!soundOn) return;
+  try{
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if(!Ctx) return;
+    const ctx = new Ctx();
+    const now = ctx.currentTime;
+    [[880, 0], [1174.7, 0.16]].forEach(([freq, delay]) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0, now + delay);
+      gain.gain.linearRampToValueAtTime(0.18, now + delay + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + delay + 0.55);
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.start(now + delay); osc.stop(now + delay + 0.6);
+    });
+    setTimeout(() => ctx.close(), 1200);
+  }catch(e){ /* 播不出來就安靜略過，不影響其他功能 */ }
+}
+
+/* ---------- 新訂單偵測 ---------- */
+/* 每小時自動查一次。因為間隔長，另外在「切回這個分頁時」也補查一次，
+   這樣你離開又回來時看到的是即時的數字。 */
+const WATCH_INTERVAL = 60 * 60 * 1000;   // 一小時
+let lastCheck = 0;
+
+async function checkNewOrders(){
+  if(Date.now() - lastCheck < 30000) return;   // 30 秒內不重複查
+  lastCheck = Date.now();
+  const { data, error } = await sb.from('orders').select('id,status');
+  if(error || !data) return;
+  const now = data.map(o => o.id + ':' + o.status).sort().join('|');
+  const was = orders.map(o => o.id + ':' + o.status).sort().join('|');
+  if(now === was) return;
+  const newCount = data.filter(o => !orders.some(x => x.id === o.id)).length;
+  await loadOrders();
+  if(newCount > 0){
+    playChime();
+    showToast(`收到 ${newCount} 筆新訂單`);
+  }
+}
+
+function startOrderWatch(){
+  if(orderWatcher) clearInterval(orderWatcher);
+  orderWatcher = setInterval(() => { if(!document.hidden) checkNewOrders(); }, WATCH_INTERVAL);
+  document.addEventListener('visibilitychange', () => {
+    if(!document.hidden) checkNewOrders();
+  });
+  const b = document.getElementById('soundBtn');
+  if(b) b.textContent = soundOn ? '🔔 提示音：開' : '🔕 提示音：關';
 }
 
 boot();

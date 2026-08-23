@@ -1,0 +1,16 @@
+<!--
+  CAFE FO+REST 品牌標誌
+  ------------------------------------------------
+  依原始圖檔描摹成向量路徑，放大不會糊。
+  顏色用 currentColor，所以只要在外層設定 color 就能換色。
+
+  用法：
+    <span class="logo-mark" style="color:#C9A56B">
+      ...把下面的 <svg> 貼進來...
+    </span>
+-->
+<svg viewBox="0 0 244 696" xmlns="http://www.w3.org/2000/svg"
+     role="img" aria-label="CAFE FO+REST">
+  <path fill="currentColor"
+        d="M0 0 L157 243 L79 243 L200 450 L107 450 L244 696 L0 696 Z"/>
+</svg>
