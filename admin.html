@@ -256,6 +256,40 @@
   .done-note{
     font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ok);
   }
+  .tag-kind-block{
+    background:linear-gradient(180deg,#FFFFFF,var(--paper-50));
+    border:1px solid var(--line);border-radius:2px;padding:14px 16px;margin-bottom:10px;
+  }
+  .tag-kind-block h4{
+    font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.08em;
+    text-transform:uppercase;color:var(--wood);margin:0 0 10px;
+  }
+  .tag-list{display:flex;gap:7px;flex-wrap:wrap;}
+  .tag-pill{
+    display:inline-flex;align-items:center;gap:6px;
+    font-size:12px;padding:5px 8px 5px 12px;border-radius:14px;
+    border:1px solid var(--line);
+    background:linear-gradient(180deg,#FFFFFF,var(--paper-100));color:var(--ink-soft);
+  }
+  .tag-pill .del{
+    background:none;border:none;color:var(--ink-mute);cursor:pointer;
+    font-size:13px;line-height:1;padding:0 2px;
+  }
+  .tag-pill .del:hover{color:var(--alert);}
+  .tag-pill .used{
+    font-family:'JetBrains Mono',monospace;font-size:9.5px;color:var(--ink-mute);
+  }
+  .tag-check{
+    display:inline-flex;align-items:center;gap:6px;
+    font-size:12.5px;padding:6px 12px;border-radius:14px;cursor:pointer;
+    border:1px solid var(--line);
+    background:linear-gradient(180deg,#FFFFFF,var(--paper-50));color:var(--ink-soft);
+  }
+  .tag-check:hover{border-color:var(--gold);}
+  .tag-check.on{
+    border-color:var(--gold-deep);color:var(--white);
+    background:linear-gradient(180deg,var(--gold),var(--gold-deep));
+  }
 </style>
 </head>
 <body>
@@ -301,6 +335,7 @@
     <button class="tab" data-panel="supplies">其他庫存</button>
     <button class="tab" data-panel="bom">用料設定</button>
     <button class="tab" data-panel="products">商品清單</button>
+    <button class="tab" data-panel="tags">標籤管理</button>
     <button class="tab" data-panel="customers">客戶資料</button>
     <button class="tab" data-panel="coupons">客戶回饋</button>
     <button class="tab" data-panel="payments">付款設定</button>
@@ -393,6 +428,42 @@
       <div class="sub" style="margin-top:10px;">
         緯度經度可在 Google 地圖上對著產區按右鍵取得。填了才會出現在地球上。
       </div>
+    </section>
+
+    <!-- 標籤管理 -->
+    <section class="panel" id="tags">
+      <div class="panel-head">
+        <div><h1 class="panel-title">標籤管理</h1>
+          <div class="sub">標籤會顯示在客人的豆單上，也是前台篩選的依據</div></div>
+        <div class="head-actions"><button class="btn ghost" onclick="loadTags()">重新整理</button></div>
+      </div>
+
+      <h2 style="font-family:'Space Grotesk',sans-serif;font-size:14px;margin:0 0 10px;">
+        為商品指定標籤
+      </h2>
+      <div class="field-inline">
+        <label class="inline-label">選擇商品</label>
+        <select class="mini wide" id="tagProduct" onchange="renderTagAssign()"></select>
+      </div>
+      <div id="tagAssign" style="margin-top:14px;"></div>
+
+      <h2 style="font-family:'Space Grotesk',sans-serif;font-size:14px;margin:32px 0 10px;">
+        所有標籤
+      </h2>
+      <div class="field-inline" style="margin-bottom:12px;">
+        <input type="text" id="newTagName" placeholder="新標籤名稱，例如：柚子皮"
+               style="padding:8px 11px;border:1px solid var(--line);border-radius:2px;
+                      font-family:inherit;font-size:13px;min-width:180px;">
+        <select class="mini" id="newTagKind">
+          <option value="flavor">風味</option>
+          <option value="roast">烘焙度</option>
+          <option value="region">產區</option>
+          <option value="process">處理法</option>
+          <option value="other">其他</option>
+        </select>
+        <button class="btn" onclick="addTag()">＋ 新增標籤</button>
+      </div>
+      <div id="tagLibrary"></div>
     </section>
 
     <!-- 客戶資料 -->
@@ -552,6 +623,7 @@ document.querySelectorAll('.tab').forEach(btn=>{
     // 庫存相關分頁每次切過來都重讀，確保看到的是最新數字
     if(id === 'beans' || id === 'supplies') loadMaterials();
     if(id === 'bom') { loadMaterials(); loadBom(); }
+    if(id === 'tags') loadTags();
     if(id === 'finance') loadFinance();
   });
 });
@@ -559,10 +631,11 @@ document.querySelectorAll('.tab').forEach(btn=>{
 async function loadAll(){
   await Promise.all([
     loadOrders(), loadMaterials(), loadProducts(),
-    loadCoupons(), loadPayments(), loadEmployees(), loadBom()
+    loadCoupons(), loadPayments(), loadEmployees(), loadBom(), loadTags()
   ]);
   await loadFinance();
   renderBom();
+  renderTagAssign();
   startOrderWatch();
 }
 
@@ -1039,6 +1112,121 @@ async function addEmployee(){
     .insert({ name:'新員工', role:'工讀生', pay_type:'hourly', base:190, hours:0, bonus:0 });
   if(error) return showToast('新增失敗');
   showToast('已新增'); loadEmployees();
+}
+
+/* ---------- 標籤管理 ---------- */
+let tagList = [], tagLinks = [];
+const KIND_LABEL = { flavor:'風味', roast:'烘焙度', region:'產區', process:'處理法', other:'其他' };
+
+async function loadTags(){
+  const [a, b] = await Promise.all([
+    sb.from('tags').select('*').order('kind').order('sort_order'),
+    sb.from('product_tags').select('*')
+  ]);
+  if(a.error){
+    const lib = document.getElementById('tagLibrary');
+    if(lib) lib.innerHTML =
+      `<div class="notice warn">還沒有建立標籤資料表。請先到 Supabase 執行 products-import.sql。</div>`;
+    return;
+  }
+  tagList = a.data || [];
+  tagLinks = b.data || [];
+  renderTagLibrary();
+  renderTagAssign();
+}
+
+function renderTagAssign(){
+  const sel = document.getElementById('tagProduct');
+  if(!sel) return;
+  if(!products.length){
+    sel.innerHTML = '<option>尚無商品</option>';
+    document.getElementById('tagAssign').innerHTML =
+      '<div class="empty">請先到商品清單新增豆單</div>';
+    return;
+  }
+  const keep = sel.value;
+  sel.innerHTML = products.map(p => `<option value="${esc(p.id)}">${esc(p.name)}</option>`).join('');
+  if(keep && products.some(p => p.id === keep)) sel.value = keep;
+
+  const pid = sel.value;
+  const own = new Set(tagLinks.filter(l => l.product_id === pid).map(l => l.tag_id));
+  const byKind = {};
+  tagList.forEach(t => (byKind[t.kind] = byKind[t.kind] || []).push(t));
+
+  document.getElementById('tagAssign').innerHTML =
+    Object.keys(KIND_LABEL).filter(k => byKind[k]).map(k => `
+      <div class="tag-kind-block">
+        <h4>${KIND_LABEL[k]}</h4>
+        <div class="tag-list">
+          ${byKind[k].map(t => `
+            <span class="tag-check ${own.has(t.id)?'on':''}"
+                  onclick="toggleTag('${esc(pid)}',${t.id},${own.has(t.id)})">
+              ${own.has(t.id) ? '✓ ' : ''}${esc(t.name)}
+            </span>`).join('')}
+        </div>
+      </div>`).join('') || '<div class="empty">尚無標籤，請在下方新增</div>';
+}
+
+async function toggleTag(productId, tagId, isOn){
+  if(isOn){
+    const { error } = await sb.from('product_tags')
+      .delete().eq('product_id', productId).eq('tag_id', tagId);
+    if(error) return showToast('移除失敗');
+  } else {
+    const { error } = await sb.from('product_tags')
+      .insert({ product_id: productId, tag_id: tagId });
+    if(error) return showToast('加入失敗');
+  }
+  const r = await sb.from('product_tags').select('*');
+  tagLinks = r.data || [];
+  showToast('標籤已更新，前台會同步');
+  renderTagAssign();
+  renderTagLibrary();
+}
+
+function renderTagLibrary(){
+  const count = {};
+  tagLinks.forEach(l => { count[l.tag_id] = (count[l.tag_id] || 0) + 1; });
+  const byKind = {};
+  tagList.forEach(t => (byKind[t.kind] = byKind[t.kind] || []).push(t));
+
+  document.getElementById('tagLibrary').innerHTML =
+    Object.keys(KIND_LABEL).filter(k => byKind[k]).map(k => `
+      <div class="tag-kind-block">
+        <h4>${KIND_LABEL[k]}（${byKind[k].length}）</h4>
+        <div class="tag-list">
+          ${byKind[k].map(t => `
+            <span class="tag-pill">
+              ${esc(t.name)}
+              <span class="used">${count[t.id] || 0}</span>
+              <button class="del" onclick="removeTag(${t.id},'${esc(t.name)}',${count[t.id]||0})"
+                      title="刪除標籤">✕</button>
+            </span>`).join('')}
+        </div>
+      </div>`).join('') || '<div class="empty">尚無標籤</div>';
+}
+
+async function addTag(){
+  const nameEl = document.getElementById('newTagName');
+  const name = nameEl.value.trim();
+  if(!name) return showToast('請先輸入標籤名稱');
+  const kind = document.getElementById('newTagKind').value;
+  const { error } = await sb.from('tags')
+    .insert({ name, kind, sort_order: tagList.filter(t => t.kind === kind).length + 1 });
+  if(error) return showToast('新增失敗：同類別已有同名標籤');
+  nameEl.value = '';
+  showToast('已新增標籤「' + name + '」');
+  loadTags();
+}
+
+async function removeTag(id, name, used){
+  const msg = used > 0
+    ? `「${name}」目前有 ${used} 個商品在用。刪除後這些商品會失去這個標籤，確定嗎？`
+    : `確定刪除標籤「${name}」？`;
+  if(!confirm(msg)) return;
+  const { error } = await sb.from('tags').delete().eq('id', id);
+  if(error) return showToast('刪除失敗');
+  showToast('已刪除'); loadTags();
 }
 
 /* ---------- 財務 ---------- */

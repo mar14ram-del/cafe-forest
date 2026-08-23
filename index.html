@@ -163,6 +163,43 @@
     margin:4px 0 6px;letter-spacing:.02em;
   }
   .bean-desc{font-size:12.5px;color:var(--ink-soft);line-height:1.65;}
+  .bean-tags{display:flex;gap:5px;flex-wrap:wrap;margin-top:8px;}
+  .tag{
+    font-family:'JetBrains Mono',monospace;font-size:10px;line-height:1.6;
+    padding:2px 8px;border-radius:2px;border:1px solid var(--line);
+    background:linear-gradient(180deg,var(--paper-50),var(--paper-100));color:var(--wood);
+  }
+  .tag.roast{border-color:#DCCBA8;background:linear-gradient(180deg,#FFFDF8,#F7F0E2);color:var(--gold-deep);}
+  .tag.region{border-color:#CFD8CF;background:linear-gradient(180deg,#FBFDFB,#EFF4EF);color:var(--ok);}
+  .tag.other{border-color:#E0C4BC;background:linear-gradient(180deg,#FEFAF8,#FAEDE8);color:var(--alert);}
+
+  .filter-bar{margin-bottom:18px;}
+  .filter-group{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:9px;}
+  .filter-label{
+    font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.06em;
+    text-transform:uppercase;color:var(--ink-mute);min-width:44px;
+  }
+  .chip{
+    font-size:12px;padding:5px 12px;border-radius:14px;cursor:pointer;
+    border:1px solid var(--line);
+    background:linear-gradient(180deg,#FFFFFF,var(--paper-50));color:var(--ink-soft);
+    transition:background .15s,border-color .15s;
+  }
+  .chip:hover{border-color:var(--gold);color:var(--gold-deep);}
+  .chip.on{
+    border-color:var(--gold-deep);color:var(--white);
+    background:linear-gradient(180deg,var(--gold),var(--gold-deep));
+  }
+  .filter-clear{
+    background:none;border:none;font-family:'JetBrains Mono',monospace;font-size:11px;
+    color:var(--ink-mute);cursor:pointer;padding:5px 4px;text-decoration:underline;
+  }
+  .filter-clear:hover{color:var(--gold-deep);}
+  .filter-count{font-size:11.5px;color:var(--ink-mute);margin-top:2px;}
+  .more-tags{
+    background:none;border:none;font-family:'JetBrains Mono',monospace;font-size:11px;
+    color:var(--gold-deep);cursor:pointer;padding:5px 8px;
+  }
   .origin-link{
     font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--gold-deep);
     margin-top:9px;cursor:pointer;display:inline-block;
@@ -297,6 +334,92 @@
     border:1px solid var(--gold);border-radius:2px;padding:16px 18px;
     font-size:13px;line-height:1.75;color:var(--wood);
   }
+
+  /* ---------- 浮動購物車 ---------- */
+  .cart-fab{
+    position:fixed;right:18px;bottom:18px;z-index:40;
+    display:none;align-items:center;gap:10px;
+    border:1px solid var(--gold-deep);border-radius:30px;
+    background:linear-gradient(180deg,var(--gold),var(--gold-deep));
+    color:var(--white);padding:12px 20px 12px 16px;cursor:pointer;
+    font-family:inherit;font-size:14px;
+    box-shadow:0 6px 20px rgba(124,90,58,.26);
+  }
+  .cart-fab.show{display:flex;}
+  .cart-fab:hover{background:linear-gradient(180deg,var(--gold-deep),var(--wood));}
+  .cart-fab .bag{position:relative;display:flex;}
+  .cart-fab .bag svg{width:19px;height:19px;display:block;}
+  .cart-fab .count{
+    position:absolute;top:-6px;right:-8px;min-width:17px;height:17px;padding:0 4px;
+    border-radius:9px;background:var(--white);color:var(--gold-deep);
+    font-family:'JetBrains Mono',monospace;font-size:10px;line-height:17px;text-align:center;
+  }
+  .cart-fab .amt{font-family:'JetBrains Mono',monospace;font-size:13.5px;}
+  @media (prefers-reduced-motion: no-preference){
+    .cart-fab.show{animation:fabIn .3s cubic-bezier(.2,.8,.3,1) both;}
+    @keyframes fabIn{from{opacity:0;transform:translateY(12px) scale(.94);}to{opacity:1;transform:none;}}
+  }
+
+  .cart-backdrop{
+    position:fixed;inset:0;background:rgba(43,42,40,.32);z-index:41;
+    display:none;
+  }
+  .cart-backdrop.show{display:block;}
+  .cart-panel{
+    position:fixed;right:0;bottom:0;left:0;z-index:42;margin:0 auto;
+    max-width:520px;max-height:82vh;overflow-y:auto;
+    background:linear-gradient(180deg,#FFFFFF,var(--paper-50));
+    border:1px solid var(--line);border-bottom:none;border-radius:10px 10px 0 0;
+    padding:20px 20px 26px;
+    transform:translateY(100%);transition:transform .28s cubic-bezier(.2,.8,.3,1);
+  }
+  .cart-panel.show{transform:translateY(0);}
+  @media (prefers-reduced-motion: reduce){ .cart-panel{transition:none;} }
+  .cart-head{
+    display:flex;justify-content:space-between;align-items:center;
+    padding-bottom:14px;border-bottom:1px solid var(--line);margin-bottom:6px;
+  }
+  .cart-head h3{
+    font-family:'Space Grotesk',sans-serif;font-size:15px;margin:0;letter-spacing:.05em;
+  }
+  .cart-close{
+    background:none;border:none;font-size:20px;color:var(--ink-mute);cursor:pointer;
+    line-height:1;padding:2px 6px;
+  }
+  .cart-close:hover{color:var(--ink);}
+  .cart-item{
+    display:flex;gap:12px;align-items:flex-start;
+    padding:14px 0;border-bottom:1px solid var(--paper-200);
+  }
+  .cart-item:last-of-type{border-bottom:none;}
+  .cart-item-info{flex:1;min-width:0;}
+  .cart-item-name{font-size:14px;font-weight:500;line-height:1.5;}
+  .cart-item-meta{
+    font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--wood);margin-top:3px;
+  }
+  .cart-item-right{text-align:right;flex-shrink:0;}
+  .cart-item-sub{font-family:'JetBrains Mono',monospace;font-size:13.5px;}
+  .cart-remove{
+    background:none;border:none;font-family:'JetBrains Mono',monospace;font-size:10.5px;
+    color:var(--ink-mute);cursor:pointer;padding:4px 0 0;
+  }
+  .cart-remove:hover{color:var(--alert);}
+  .cart-total{
+    display:flex;justify-content:space-between;align-items:baseline;
+    border-top:1px solid var(--line);margin-top:10px;padding-top:14px;
+  }
+  .cart-total .lbl{font-size:13px;color:var(--ink-soft);}
+  .cart-total .val{font-family:'JetBrains Mono',monospace;font-size:19px;}
+  .cart-go{
+    width:100%;margin-top:16px;padding:15px;
+    border:1px solid var(--gold-deep);border-radius:2px;
+    background:linear-gradient(180deg,var(--gold),var(--gold-deep));color:var(--white);
+    font-family:'Space Grotesk',sans-serif;font-size:14.5px;letter-spacing:.05em;cursor:pointer;
+  }
+  .cart-go:hover{background:linear-gradient(180deg,var(--gold-deep),var(--wood));}
+  .cart-hint{
+    font-size:11.5px;color:var(--ink-mute);text-align:center;margin:10px 0 0;line-height:1.6;
+  }
 </style>
 </head>
 <body>
@@ -336,6 +459,7 @@
 
   <section>
     <h2 class="section-title">選擇咖啡豆</h2>
+    <div class="filter-bar" id="filterBar"></div>
     <div id="beanList"><div class="loading">載入豆單中…</div></div>
   </section>
 
@@ -404,6 +528,35 @@
   <button class="again" onclick="resetForm()">再訂一筆</button>
 </div>
 
+<div class="cart-backdrop" id="cartBackdrop" onclick="closeCart()"></div>
+
+<div class="cart-panel" id="cartPanel" role="dialog" aria-label="已選購項目">
+  <div class="cart-head">
+    <h3>已選購項目</h3>
+    <button class="cart-close" onclick="closeCart()" aria-label="關閉">✕</button>
+  </div>
+  <div id="cartItems"></div>
+  <div class="cart-total">
+    <span class="lbl">小計</span>
+    <span class="val" id="cartTotal">NT$ 0</span>
+  </div>
+  <button class="cart-go" onclick="goToForm()">前往填寫訂購資料</button>
+  <p class="cart-hint">優惠券與付款方式在下一步填寫</p>
+</div>
+
+<button class="cart-fab" id="cartFab" onclick="openCart()" aria-label="查看已選購項目">
+  <span class="bag">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+         stroke-linecap="round" stroke-linejoin="round">
+      <path d="M6 2 L3 6 v14 a2 2 0 0 0 2 2 h14 a2 2 0 0 0 2-2 V6 l-3-4 Z"/>
+      <path d="M3 6 h18"/>
+      <path d="M16 10 a4 4 0 0 1-8 0"/>
+    </svg>
+    <span class="count" id="cartCount">0</span>
+  </span>
+  <span class="amt" id="cartAmt">NT$ 0</span>
+</button>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="supabase-config.js"></script>
 <script src="globe.js"></script>
@@ -426,6 +579,87 @@ async function init(){
   await Promise.all([loadProducts(), loadPayments()]);
 }
 
+let tags = [];          // 所有標籤
+let tagMap = {};         // 商品 id → 標籤陣列
+let activeFilters = new Set();
+let showAllFlavors = false;
+
+async function loadTags(){
+  const [tagRes, linkRes] = await Promise.all([
+    sb.from('tags').select('*').order('kind').order('sort_order'),
+    sb.from('product_tags').select('*')
+  ]);
+  if(tagRes.error || linkRes.error) return;      // 還沒建立標籤表就略過，不影響下單
+  tags = tagRes.data || [];
+  const byId = Object.fromEntries(tags.map(t => [t.id, t]));
+  tagMap = {};
+  (linkRes.data || []).forEach(l => {
+    const t = byId[l.tag_id];
+    if(!t) return;
+    (tagMap[l.product_id] = tagMap[l.product_id] || []).push(t);
+  });
+  renderFilters();
+}
+
+/* 只顯示「目前商品實際用到」的標籤，避免出現按了沒東西的選項 */
+function usedTags(kind){
+  const used = new Set();
+  products.forEach(p => (tagMap[p.id] || []).forEach(t => { if(t.kind === kind) used.add(t.id); }));
+  return tags.filter(t => used.has(t.id));
+}
+
+function renderFilters(){
+  const bar = document.getElementById('filterBar');
+  const groups = [
+    { kind:'roast',   label:'烘焙' },
+    { kind:'region',  label:'產區' },
+    { kind:'process', label:'處理' },
+    { kind:'flavor',  label:'風味' },
+  ];
+  let html = '';
+  groups.forEach(g => {
+    let list = usedTags(g.kind);
+    if(!list.length) return;
+    let extra = '';
+    if(g.kind === 'flavor' && !showAllFlavors && list.length > 8){
+      extra = `<button class="more-tags" onclick="showAllFlavors=true;renderFilters()">
+                 更多 ${list.length - 8} 種風味 ▾</button>`;
+      list = list.slice(0, 8);
+    }
+    html += `<div class="filter-group">
+      <span class="filter-label">${g.label}</span>
+      ${list.map(t => `<span class="chip ${activeFilters.has(t.id)?'on':''}"
+        onclick="toggleFilter(${t.id})">${esc(t.name)}</span>`).join('')}
+      ${extra}
+    </div>`;
+  });
+  if(activeFilters.size){
+    html += `<button class="filter-clear" onclick="clearFilters()">清除篩選（${activeFilters.size}）</button>`;
+  }
+  bar.innerHTML = html;
+}
+function toggleFilter(id){
+  activeFilters.has(id) ? activeFilters.delete(id) : activeFilters.add(id);
+  renderFilters(); renderBeans();
+}
+function clearFilters(){
+  activeFilters.clear();
+  renderFilters(); renderBeans();
+}
+/* 篩選規則：同一類標籤之間是「或」，不同類之間是「且」。
+   例如選了「淺焙」＋「非洲產區」＋「花香」＋「莓果」，
+   會找出：淺焙 且 非洲 且（花香 或 莓果）的豆子。 */
+function matchFilters(p){
+  if(!activeFilters.size) return true;
+  const own = (tagMap[p.id] || []);
+  const byKind = {};
+  activeFilters.forEach(id => {
+    const t = tags.find(x => x.id === id);
+    if(t) (byKind[t.kind] = byKind[t.kind] || []).push(id);
+  });
+  return Object.values(byKind).every(ids => ids.some(id => own.some(t => t.id === id)));
+}
+
 async function loadProducts(){
   const { data, error } = await sb.from('products')
     .select('*').eq('active', true).order('sort_order');
@@ -435,6 +669,7 @@ async function loadProducts(){
     return;
   }
   products = data || [];
+  await loadTags();
   renderBeans();
   initGlobe();
 }
@@ -485,9 +720,22 @@ function viewOrigin(id){
 function renderBeans(){
   const el = document.getElementById('beanList');
   if(!products.length){ el.innerHTML = '<div class="empty-note">目前沒有上架中的豆子</div>'; return; }
-  el.innerHTML = products.map(p => `
+
+  const list = products.filter(matchFilters);
+  if(!list.length){
+    el.innerHTML = `<div class="empty-note">
+      沒有符合的豆子。<button class="filter-clear" onclick="clearFilters()">清除篩選看全部</button></div>`;
+    return;
+  }
+
+  el.innerHTML = list.map(p => {
+    const chips = (tagMap[p.id] || [])
+      .filter(t => t.kind !== 'flavor' || true)
+      .map(t => `<span class="tag ${t.kind}">${esc(t.name)}</span>`).join('');
+    return `
     <div class="bean">
-      <input type="checkbox" id="cb-${p.id}" onchange="toggleBean('${p.id}', this.checked)">
+      <input type="checkbox" id="cb-${p.id}" ${qty[p.id]?'checked':''}
+             onchange="toggleBean('${p.id}', this.checked)">
       <div class="bean-info">
         <div class="bean-top">
           <div class="bean-name">${esc(p.name)}</div>
@@ -495,15 +743,18 @@ function renderBeans(){
         </div>
         <div class="bean-meta">${esc(p.meta || '')}</div>
         <div class="bean-desc">${esc(p.description || '')}</div>
+        ${chips ? `<div class="bean-tags">${chips}</div>` : ''}
         ${p.origin_lat !== null && p.origin_country
           ? `<div class="origin-link" onclick="viewOrigin('${p.id}')">看產區在地球上的位置 ↑</div>` : ''}
-        <div class="qty-row" id="qtyRow-${p.id}" style="display:none;">
+        <div class="qty-row" id="qtyRow-${p.id}" style="display:${qty[p.id]?'flex':'none'};">
           <div class="qty-btn" onclick="changeQty('${p.id}',-1)">−</div>
-          <div class="qty-val" id="qtyVal-${p.id}">1</div>
+          <div class="qty-val" id="qtyVal-${p.id}">${qty[p.id] || 1}</div>
           <div class="qty-btn" onclick="changeQty('${p.id}',1)">＋</div>
         </div>
       </div>
-    </div>`).join('');
+    </div>`;
+  }).join('') + (list.length < products.length
+    ? `<div class="filter-count">顯示 ${list.length} / ${products.length} 支</div>` : '');
 }
 function toggleBean(id, checked){
   if(checked){ qty[id] = 1; document.getElementById('qtyRow-'+id).style.display='flex'; }
@@ -512,7 +763,8 @@ function toggleBean(id, checked){
 }
 function changeQty(id, d){
   qty[id] = Math.max(1, (qty[id]||1) + d);
-  document.getElementById('qtyVal-'+id).textContent = qty[id];
+  const el = document.getElementById('qtyVal-'+id);
+  if(el) el.textContent = qty[id];
   renderSummary();
 }
 
@@ -593,7 +845,11 @@ function discountOf(sub){
 function renderSummary(){
   const ids = Object.keys(qty);
   const box = document.getElementById('summary');
-  if(!ids.length){ box.innerHTML = '<div class="empty-note">尚未選擇豆子</div>'; return; }
+  if(!ids.length){
+    box.innerHTML = '<div class="empty-note">尚未選擇豆子</div>';
+    updateCart();
+    return;
+  }
   const sub = subtotalOf();
   const rows = ids.map(id => {
     const p = products.find(x => x.id === id);
@@ -605,7 +861,8 @@ function renderSummary(){
   if(appliedCoupon && appliedCoupon.kind === 'exchange')
     extra += `<div class="summary-row" style="color:var(--ok)"><span>兌換品項</span><span>${esc(appliedCoupon.exchange_item)}（免費）</span></div>`;
   box.innerHTML = rows + extra +
-    `<div class="summary-row total"><span>應付總額</span><span>NT$ ${sub - dis}</span></div>`;
+    `<div class="summary-row total"><span>應付總額</span><span>NT$ ${(sub - dis).toLocaleString('en-US')}</span></div>`;
+  updateCart();
 }
 
 /* ---------- 送出 ---------- */
@@ -675,6 +932,71 @@ function resetForm(){
   document.getElementById('formView').style.display = 'block';
   window.scrollTo({top:0, behavior:'smooth'});
 }
+
+/* ---------- 浮動購物車 ---------- */
+function cartCount(){
+  return Object.values(qty).reduce((s,n)=>s+n, 0);
+}
+function updateCart(){
+  const n = cartCount();
+  const fab = document.getElementById('cartFab');
+  document.getElementById('cartCount').textContent = n;
+  document.getElementById('cartAmt').textContent = 'NT$ ' + subtotalOf().toLocaleString('en-US');
+  fab.classList.toggle('show', n > 0);
+  if(n === 0) closeCart();
+  renderCart();
+}
+function renderCart(){
+  const ids = Object.keys(qty);
+  const box = document.getElementById('cartItems');
+  if(!ids.length){ box.innerHTML = '<p class="cart-hint" style="padding:20px 0;">還沒有選擇任何豆子</p>'; }
+  else {
+    box.innerHTML = ids.map(id => {
+      const p = products.find(x => x.id === id);
+      if(!p) return '';
+      return `
+      <div class="cart-item">
+        <div class="cart-item-info">
+          <div class="cart-item-name">${esc(p.name)}</div>
+          <div class="cart-item-meta">${esc(p.meta || '')} · NT$ ${p.price}</div>
+          <div class="qty-row" style="margin-top:9px;">
+            <div class="qty-btn" onclick="changeQty('${p.id}',-1)">−</div>
+            <div class="qty-val">${qty[id]}</div>
+            <div class="qty-btn" onclick="changeQty('${p.id}',1)">＋</div>
+          </div>
+        </div>
+        <div class="cart-item-right">
+          <div class="cart-item-sub">NT$ ${(Number(p.price)*qty[id]).toLocaleString('en-US')}</div>
+          <button class="cart-remove" onclick="removeFromCart('${p.id}')">移除</button>
+        </div>
+      </div>`;
+    }).join('');
+  }
+  document.getElementById('cartTotal').textContent = 'NT$ ' + subtotalOf().toLocaleString('en-US');
+}
+function openCart(){
+  renderCart();
+  document.getElementById('cartBackdrop').classList.add('show');
+  document.getElementById('cartPanel').classList.add('show');
+}
+function closeCart(){
+  document.getElementById('cartBackdrop').classList.remove('show');
+  document.getElementById('cartPanel').classList.remove('show');
+}
+function removeFromCart(id){
+  delete qty[id];
+  const cb = document.getElementById('cb-' + id);
+  if(cb) cb.checked = false;
+  const row = document.getElementById('qtyRow-' + id);
+  if(row) row.style.display = 'none';
+  renderSummary();
+}
+function goToForm(){
+  closeCart();
+  document.getElementById('custName').scrollIntoView({ behavior:'smooth', block:'center' });
+  setTimeout(()=> document.getElementById('custName').focus({ preventScroll:true }), 420);
+}
+document.addEventListener('keydown', e => { if(e.key === 'Escape') closeCart(); });
 
 function esc(s){
   return String(s ?? '').replace(/[&<>"']/g, c =>
