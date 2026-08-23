@@ -184,7 +184,11 @@ function createGlobe(container, origins, opts = {}) {
       // 標記點本身
       const pin = document.createElementNS(NS, 'g');
       pin.setAttribute('transform', `translate(${p.x},${p.y}) scale(${scale})`);
-      pin.innerHTML = (isSel ? `
+      pin.innerHTML =
+        // 看不見的加大熱區：實際圓點只有 5px 半徑，手指或滑鼠很難精準點到，
+        // 所以疊一個透明的大圓負責接收點擊，視覺上完全看不出來。
+        `<circle r="14" fill="transparent"/>` +
+        (isSel ? `
         <circle r="7" fill="none" stroke="#A9803F" stroke-width="1.4" opacity="0.6">
           <animate attributeName="r" values="6;16;6" dur="1.9s" repeatCount="indefinite"/>
           <animate attributeName="opacity" values="0.55;0;0.55" dur="1.9s" repeatCount="indefinite"/>
@@ -220,6 +224,10 @@ function createGlobe(container, origins, opts = {}) {
         }
       }
 
+      // 標記點自己要先攔截 pointerdown，不然事件會冒泡到 svg 被當成
+      // 「開始拖曳地球」處理，svg 還會 setPointerCapture() 把後續的
+      // pointerup／click 都劫走，導致點了標記點卻完全沒反應。
+      g.addEventListener('pointerdown', e => e.stopPropagation());
       g.addEventListener('click', e => { e.stopPropagation(); flyTo(o.id); });
       pinGroup.appendChild(g);
     });

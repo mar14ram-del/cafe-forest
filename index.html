@@ -151,38 +151,7 @@
   }
   .pp-stat .l{font-size:11px;color:var(--ink-mute);margin-top:3px;}
 
-  /* 章 */
-  .pp-block{margin-top:18px;}
-  .pp-block h4{
-    font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.14em;
-    text-transform:uppercase;color:var(--ink-mute);margin:0 0 9px;font-weight:400;
-  }
-  .stamps{display:flex;flex-wrap:wrap;gap:7px;}
-  .stamp{
-    display:inline-flex;align-items:baseline;gap:7px;
-    padding:6px 11px;border:1px solid var(--line);border-radius:2px;
-    background:linear-gradient(180deg,#FFFFFF,var(--paper-100));
-    font-size:12.5px;color:var(--ink-soft);
-  }
-  .stamp .n{
-    font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--wood);
-  }
-  .stamp.hot{
-    border-color:#DCCBA8;color:var(--gold-deep);
-    background:linear-gradient(180deg,#FFFDF8,#F7F0E2);
-  }
-  .stamp.hot .n{color:var(--gold-deep);}
-  .stamp.up{
-    border-color:var(--ok);color:var(--ok);
-    background:linear-gradient(180deg,#FBFDFB,#EFF4EF);
-  }
-  .stamp.up .n{color:var(--ok);}
-  .stamp .plus{
-    font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--ok);
-  }
-  .stamp.first{border-style:dashed;border-color:var(--gold);color:var(--gold-deep);background:var(--white);}
-
-  /* 這次會蓋的章 */
+  /* 這次會蓋的章（護照還沒有任何紀錄時顯示） */
   .pp-preview{
     margin-top:18px;padding:14px 15px;border-radius:2px;
     border:1px solid #CFD8CF;
@@ -950,7 +919,7 @@ let ppDraft = '';          // 尚未送出的輸入值，重繪時保留
 let ppMsg   = '';          // 目前要顯示的訊息
 
 /* 護照書：資訊版／書本版切換、翻頁狀態 */
-let ppView = 'book';       // 'info' | 'book'
+let ppView = 'book';       // 'book' | 'coupons'
 let ppBookIndex = 0;
 let ppBookDir = '';        // 'next' | 'prev'，決定翻頁動畫方向
 
@@ -1128,39 +1097,16 @@ function renderPassport(){
     return;
   }
 
-  /* 正式護照 */
-  const pend = pendingStamps();
-  const blocks = SCOPE_ORDER.map(scope => {
-    const list = (ppData.stamps[scope] || []).slice();
-    const addNames = Object.keys(pend[scope] || {});
-    // 這次會第一次蓋到的章，也一起列出來（虛線＝首次）
-    addNames.forEach(n => {
-      if(!list.some(x => x.name === n)) list.push({ name:n, count:0, isNew:true });
-    });
-    if(!list.length) return '';
-    const max = Math.max(...list.map(x => Number(x.count) || 0));
-    const chips = list.map(s => {
-      const add = (pend[scope] || {})[s.name] || 0;
-      const cls = s.isNew ? 'first'
-                : add > 0 ? 'up'
-                : (max >= 3 && Number(s.count) === max) ? 'hot' : '';
-      return `<span class="stamp ${cls}">${esc(s.name)}
-        <span class="n">${s.isNew ? '首次' : '×' + s.count}</span>
-        ${add > 0 && !s.isNew ? `<span class="plus">+${add}</span>` : ''}</span>`;
-    }).join('');
-    return `<div class="pp-block"><h4>${SCOPE_LABEL[scope]}</h4>
-              <div class="stamps">${chips}</div></div>`;
-  }).join('');
-
+  /* 正式護照：護照書／折扣碼 兩個頁籤 */
   const tabsHtml = `
     <div class="pp-tabs">
-      <div class="pp-tab ${ppView==='info'?'on':''}" onclick="setPpView('info')">資訊版</div>
       <div class="pp-tab ${ppView==='book'?'on':''}" onclick="setPpView('book')">護照書</div>
+      <div class="pp-tab ${ppView==='coupons'?'on':''}" onclick="setPpView('coupons')">折扣碼</div>
     </div>`;
 
-  const bodyHtml = ppView === 'book'
-    ? renderPassportBookHTML()
-    : (blocks || '<p class="pp-empty">還沒有可以顯示的章。</p>') + renderPreview();
+  const bodyHtml = ppView === 'coupons'
+    ? renderCouponTabHTML()
+    : renderPassportBookHTML();
 
   box.innerHTML = `
     <div class="pp-card">
@@ -1220,8 +1166,19 @@ function setPpView(v){
 function bookPages(){
   const pages = [{ type:'cover' }, { type:'bio' }];
   SCOPE_ORDER.forEach(scope => pages.push({ type:'stamps', scope }));
-  pages.push({ type:'coupons' });
   return pages;
+}
+
+/* 折扣碼頁籤：不用翻頁，直接顯示我的優惠券 */
+function renderCouponTabHTML(){
+  return `
+    <div class="pp-book">
+      <div class="pp-book-stage">
+        <div class="pp-page">
+          ${renderCouponPage()}
+        </div>
+      </div>
+    </div>`;
 }
 
 function renderPassportBookHTML(){
