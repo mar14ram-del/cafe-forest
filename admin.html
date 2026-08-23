@@ -204,6 +204,36 @@
     max-width:110px;border:1px solid var(--line);border-radius:2px;
     padding:5px;background:var(--white);margin-top:6px;
   }
+  .field-inline{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+  .inline-label{
+    font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.06em;
+    text-transform:uppercase;color:var(--wood);
+  }
+  select.mini.wide{min-width:220px;font-family:inherit;font-size:13px;padding:8px 10px;}
+  .notice{
+    border-radius:2px;padding:12px 15px;font-size:12.5px;line-height:1.7;margin-top:14px;
+  }
+  .notice.warn{
+    background:linear-gradient(180deg,#FFFDF8,#F9F1DF);
+    border:1px solid var(--gold);color:var(--wood);
+  }
+  .notice.good{
+    background:linear-gradient(180deg,#FBFDFB,#EFF4EF);
+    border:1px solid #C4D4C4;color:var(--ok);
+  }
+  .btn-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+  .btn.step{
+    border-color:var(--gold-deep);
+    background:linear-gradient(180deg,var(--gold),var(--gold-deep));color:var(--white);
+  }
+  .btn.back{
+    border-color:var(--line);color:var(--ink-mute);
+    background:linear-gradient(180deg,#FFFFFF,var(--paper-100));
+  }
+  .btn.back:hover{border-color:var(--ink-mute);color:var(--ink-soft);}
+  .done-note{
+    font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ok);
+  }
 </style>
 </head>
 <body>
@@ -230,7 +260,9 @@
 
   <nav>
     <button class="tab active" data-panel="orders">訂單</button>
-    <button class="tab" data-panel="materials">物料庫存</button>
+    <button class="tab" data-panel="beans">生豆庫存</button>
+    <button class="tab" data-panel="supplies">其他庫存</button>
+    <button class="tab" data-panel="bom">用料設定</button>
     <button class="tab" data-panel="products">商品清單</button>
     <button class="tab" data-panel="customers">客戶資料</button>
     <button class="tab" data-panel="coupons">客戶回饋</button>
@@ -252,17 +284,59 @@
       <div id="orderList"><div class="empty">載入中…</div></div>
     </section>
 
-    <!-- 物料庫存 -->
-    <section class="panel" id="materials">
+    <!-- 生豆庫存 -->
+    <section class="panel" id="beans">
       <div class="panel-head">
-        <div><h1 class="panel-title">物料庫存</h1>
-          <div class="sub">低於安全水位會標紅。改動即時儲存</div></div>
-        <div class="head-actions"><button class="btn" onclick="addMaterial()">＋ 新增物料</button></div>
+        <div><h1 class="panel-title">生豆庫存</h1>
+          <div class="sub">客人下單當下就會依用料設定自動扣除。低於安全水位會標紅</div></div>
+        <div class="head-actions">
+          <button class="btn ghost" onclick="loadMaterials()">重新整理</button>
+          <button class="btn" onclick="addMaterial('生豆')">＋ 新增生豆</button>
+        </div>
       </div>
+      <div class="stat-row" id="beanStats"></div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>代號</th><th>名稱</th><th>單位</th><th>目前庫存</th><th>安全水位</th><th></th></tr></thead>
+        <tbody id="beanBody"></tbody>
+      </table></div>
+    </section>
+
+    <!-- 其他庫存 -->
+    <section class="panel" id="supplies">
+      <div class="panel-head">
+        <div><h1 class="panel-title">其他庫存</h1>
+          <div class="sub">包材、耗材、贈品等非生豆的物料</div></div>
+        <div class="head-actions">
+          <button class="btn ghost" onclick="loadMaterials()">重新整理</button>
+          <button class="btn" onclick="addMaterial('包材')">＋ 新增物料</button>
+        </div>
+      </div>
+      <div class="stat-row" id="supplyStats"></div>
       <div class="table-wrap"><table>
         <thead><tr><th>代號</th><th>名稱</th><th>分類</th><th>單位</th><th>目前庫存</th><th>安全水位</th><th></th></tr></thead>
-        <tbody id="materialBody"></tbody>
+        <tbody id="supplyBody"></tbody>
       </table></div>
+    </section>
+
+    <!-- 用料設定 -->
+    <section class="panel" id="bom">
+      <div class="panel-head">
+        <div><h1 class="panel-title">用料設定</h1>
+          <div class="sub">設定「賣出一包這支豆子，要扣掉哪些物料、各多少」。沒設定的豆子下單不會扣庫存</div></div>
+        <div class="head-actions"><button class="btn ghost" onclick="loadBom()">重新整理</button></div>
+      </div>
+      <div class="field-inline">
+        <label class="inline-label">選擇商品</label>
+        <select class="mini" id="bomProduct" onchange="renderBom()"></select>
+      </div>
+      <div id="bomWarn"></div>
+      <div class="table-wrap" style="margin-top:14px;"><table>
+        <thead><tr><th>物料</th><th>分類</th><th>單位</th><th>每包用量</th><th>目前庫存</th></tr></thead>
+        <tbody id="bomBody"></tbody>
+      </table></div>
+      <div class="sub" style="margin-top:10px;">
+        用量填 0 代表這支豆子不會用到該物料。半磅（227g）熟豆一般抓 250g 生豆，因為烘焙會失重約 15%。
+      </div>
     </section>
 
     <!-- 商品清單 -->
@@ -431,16 +505,22 @@ document.querySelectorAll('.tab').forEach(btn=>{
     document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
     document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
     btn.classList.add('active');
-    document.getElementById(btn.dataset.panel).classList.add('active');
+    const id = btn.dataset.panel;
+    document.getElementById(id).classList.add('active');
+    // 庫存相關分頁每次切過來都重讀，確保看到的是最新數字
+    if(id === 'beans' || id === 'supplies') loadMaterials();
+    if(id === 'bom') { loadMaterials(); loadBom(); }
+    if(id === 'finance') loadFinance();
   });
 });
 
 async function loadAll(){
   await Promise.all([
     loadOrders(), loadMaterials(), loadProducts(),
-    loadCoupons(), loadPayments(), loadEmployees()
+    loadCoupons(), loadPayments(), loadEmployees(), loadBom()
   ]);
   await loadFinance();
+  renderBom();
 }
 
 /* ---------- 訂單 ---------- */
@@ -496,14 +576,25 @@ function renderOrders(){
         <div class="mono-label">品項</div>
         ${items}
         ${Number(o.discount)>0 ? `<div class="item-row" style="color:var(--ok)"><span>優惠折抵</span><span>− ${money(o.discount)}</span></div>`:''}
-        <div style="margin-top:14px;display:flex;gap:9px;flex-wrap:wrap;align-items:center;">
-          <select class="mini" onchange="setOrderField('${o.id}','status',this.value)">
-            ${['待處理','已出貨','已完成'].map(s=>`<option ${o.status===s?'selected':''}>${s}</option>`).join('')}
-          </select>
-          <select class="mini" onchange="setOrderField('${o.id}','payment_status',this.value)">
-            ${['待付款','已付款','到店付款'].map(s=>`<option ${o.payment_status===s?'selected':''}>${s}</option>`).join('')}
-          </select>
-          <button class="btn danger" onclick="deleteOrder('${o.id}')">刪除</button>
+        <div class="mono-label">訂單處理</div>
+        <div class="btn-row">
+          ${o.status === '待處理' ? `
+            <button class="btn step" onclick="setOrderField('${o.id}','status','已出貨')">確認出貨</button>` : ''}
+          ${o.status === '已出貨' ? `
+            <button class="btn step" onclick="setOrderField('${o.id}','status','已完成')">完成訂單</button>
+            <button class="btn back" onclick="setOrderField('${o.id}','status','待處理')">退回待處理</button>` : ''}
+          ${o.status === '已完成' ? `
+            <span class="done-note">✓ 這筆訂單已結案</span>
+            <button class="btn back" onclick="setOrderField('${o.id}','status','已出貨')">退回已出貨</button>` : ''}
+        </div>
+
+        <div class="mono-label">收款狀態</div>
+        <div class="btn-row">
+          ${o.payment_status !== '已付款' ? `
+            <button class="btn step" onclick="setOrderField('${o.id}','payment_status','已付款')">標記已收款</button>` : `
+            <span class="done-note">✓ 已收款</span>
+            <button class="btn back" onclick="setOrderField('${o.id}','payment_status','待付款')">改回待付款</button>`}
+          <button class="btn danger" style="margin-left:auto;" onclick="deleteOrder('${o.id}')">刪除訂單</button>
         </div>
       </div>
     </div>`;
@@ -512,8 +603,10 @@ function renderOrders(){
 async function setOrderField(id, field, val){
   const { error } = await sb.from('orders').update({ [field]: val }).eq('id', id);
   if(error) return showToast('更新失敗');
-  showToast('已更新');
-  const o = orders.find(x=>x.id===id); if(o) o[field] = val;
+  const o = orders.find(x=>x.id===id);
+  if(o) o[field] = val;
+  showToast('已更新為「' + val + '」');
+  renderOrders();
 }
 async function deleteOrder(id){
   if(!confirm('確定要刪除訂單 ' + id + ' 嗎？這不會把庫存加回去。')) return;
@@ -553,12 +646,48 @@ function buildCustomers(){
   renderCoupons();
 }
 
-/* ---------- 物料 ---------- */
+/* ---------- 物料（生豆／其他分開顯示） ---------- */
 async function loadMaterials(){
   const { data } = await sb.from('materials').select('*').order('category').order('id');
   materials = data || [];
-  document.getElementById('materialBody').innerHTML = materials.map((m,i)=>`
-    <tr>
+  renderMaterials();
+  renderBom();
+}
+function isBean(m){ return (m.category || '').includes('生豆'); }
+
+function renderMaterials(){
+  const beans = materials.filter(isBean);
+  const supplies = materials.filter(m => !isBean(m));
+
+  const lowB = beans.filter(m => Number(m.stock) < Number(m.safety_stock)).length;
+  document.getElementById('beanStats').innerHTML = `
+    <div class="stat"><div class="num">${beans.length}</div><div class="lbl">生豆種類</div></div>
+    <div class="stat"><div class="num" style="color:${lowB?'var(--alert)':'var(--ok)'}">${lowB}</div>
+      <div class="lbl">低於安全水位</div></div>`;
+
+  const lowS = supplies.filter(m => Number(m.stock) < Number(m.safety_stock)).length;
+  document.getElementById('supplyStats').innerHTML = `
+    <div class="stat"><div class="num">${supplies.length}</div><div class="lbl">物料種類</div></div>
+    <div class="stat"><div class="num" style="color:${lowS?'var(--alert)':'var(--ok)'}">${lowS}</div>
+      <div class="lbl">低於安全水位</div></div>`;
+
+  document.getElementById('beanBody').innerHTML = beans.map(m => {
+    const i = materials.indexOf(m);
+    return `<tr>
+      <td style="font-family:'JetBrains Mono',monospace;font-size:11.5px;">${esc(m.id)}</td>
+      <td><input class="cell" value="${esc(m.name)}" onchange="saveMaterial(${i},'name',this.value)"></td>
+      <td><input class="cell" value="${esc(m.unit)}" onchange="saveMaterial(${i},'unit',this.value)"></td>
+      <td><input class="cell ${Number(m.stock)<Number(m.safety_stock)?'stock-low':''}" type="number"
+                 value="${m.stock}" onchange="saveMaterial(${i},'stock',Number(this.value))"></td>
+      <td><input class="cell" type="number" value="${m.safety_stock}"
+                 onchange="saveMaterial(${i},'safety_stock',Number(this.value))"></td>
+      <td><button class="btn danger" onclick="removeMaterial(${i})">刪除</button></td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="6" class="empty">尚無生豆資料</td></tr>';
+
+  document.getElementById('supplyBody').innerHTML = supplies.map(m => {
+    const i = materials.indexOf(m);
+    return `<tr>
       <td style="font-family:'JetBrains Mono',monospace;font-size:11.5px;">${esc(m.id)}</td>
       <td><input class="cell" value="${esc(m.name)}" onchange="saveMaterial(${i},'name',this.value)"></td>
       <td><input class="cell" value="${esc(m.category)}" onchange="saveMaterial(${i},'category',this.value)"></td>
@@ -568,26 +697,89 @@ async function loadMaterials(){
       <td><input class="cell" type="number" value="${m.safety_stock}"
                  onchange="saveMaterial(${i},'safety_stock',Number(this.value))"></td>
       <td><button class="btn danger" onclick="removeMaterial(${i})">刪除</button></td>
-    </tr>`).join('') || '<tr><td colspan="7" class="empty">尚無物料</td></tr>';
+    </tr>`;
+  }).join('') || '<tr><td colspan="7" class="empty">尚無其他物料</td></tr>';
 }
 async function saveMaterial(i, field, val){
   const { error } = await sb.from('materials').update({ [field]: val }).eq('id', materials[i].id);
   if(error) return showToast('儲存失敗');
-  materials[i][field] = val; showToast(); loadMaterials();
+  materials[i][field] = val; showToast(); renderMaterials();
 }
 async function removeMaterial(i){
   if(!confirm('確定刪除「'+materials[i].name+'」？')) return;
   const { error } = await sb.from('materials').delete().eq('id', materials[i].id);
-  if(error) return showToast('刪除失敗：可能有商品的用料表還在用它');
+  if(error) return showToast('刪除失敗：可能還有商品的用料設定在用它');
   showToast('已刪除'); loadMaterials();
 }
-async function addMaterial(){
-  const id = prompt('請輸入物料代號（英數字，例如 RAW-KEN 或 PK-BOX）');
+async function addMaterial(category){
+  const id = prompt(category === '生豆'
+    ? '請輸入生豆代號（英數字，例如 RAW-KEN）'
+    : '請輸入物料代號（英數字，例如 PK-BOX）');
   if(!id) return;
-  const { error } = await sb.from('materials')
-    .insert({ id: id.trim().toUpperCase(), name:'新物料', category:'生豆', unit:'g', stock:0, safety_stock:0 });
+  const { error } = await sb.from('materials').insert({
+    id: id.trim().toUpperCase(), name: category==='生豆' ? '新生豆' : '新物料',
+    category: category || '包材', unit: category==='生豆' ? 'g' : '個',
+    stock: 0, safety_stock: 0
+  });
   if(error) return showToast('新增失敗：代號可能重複了');
   showToast('已新增'); loadMaterials();
+}
+
+/* ---------- 用料設定 ---------- */
+let bomRows = [];
+async function loadBom(){
+  const { data } = await sb.from('product_materials').select('*');
+  bomRows = data || [];
+  renderBom();
+}
+function renderBom(){
+  const sel = document.getElementById('bomProduct');
+  if(!sel) return;
+  if(!products.length){
+    sel.innerHTML = '<option>尚無商品</option>';
+    document.getElementById('bomBody').innerHTML =
+      '<tr><td colspan="5" class="empty">請先到商品清單新增豆單</td></tr>';
+    return;
+  }
+  const keep = sel.value;
+  sel.className = 'mini wide';
+  sel.innerHTML = products.map(p =>
+    `<option value="${esc(p.id)}">${esc(p.name)}</option>`).join('');
+  if(keep && products.some(p=>p.id===keep)) sel.value = keep;
+
+  const pid = sel.value;
+  const used = bomRows.filter(r => r.product_id === pid && Number(r.qty_per_unit) > 0);
+
+  document.getElementById('bomWarn').innerHTML = used.length
+    ? `<div class="notice good">這支豆子已設定 ${used.length} 項用料，客人下單時會自動扣庫存。</div>`
+    : `<div class="notice warn">這支豆子還沒有設定任何用料，<b>客人下單時不會扣任何庫存</b>。請在下方填入每包的用量。</div>`;
+
+  document.getElementById('bomBody').innerHTML = materials.map(m => {
+    const row = bomRows.find(r => r.product_id === pid && r.material_id === m.id);
+    const qty = row ? Number(row.qty_per_unit) : 0;
+    return `<tr>
+      <td>${esc(m.name)}</td>
+      <td style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-mute);">${esc(m.category)}</td>
+      <td style="font-family:'JetBrains Mono',monospace;font-size:11px;">${esc(m.unit)}</td>
+      <td><input class="cell" type="number" min="0" step="any" value="${qty}"
+                 onchange="saveBom('${esc(pid)}','${esc(m.id)}',Number(this.value))"></td>
+      <td style="font-family:'JetBrains Mono',monospace;font-size:12px;
+                 ${Number(m.stock)<Number(m.safety_stock)?'color:var(--alert);':''}">${m.stock}</td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="5" class="empty">請先新增物料</td></tr>';
+}
+async function saveBom(productId, materialId, qty){
+  if(qty > 0){
+    const { error } = await sb.from('product_materials')
+      .upsert({ product_id:productId, material_id:materialId, qty_per_unit:qty });
+    if(error) return showToast('儲存失敗');
+  } else {
+    const { error } = await sb.from('product_materials')
+      .delete().eq('product_id',productId).eq('material_id',materialId);
+    if(error) return showToast('儲存失敗');
+  }
+  showToast('用料已更新');
+  await loadBom();
 }
 
 /* ---------- 商品 ---------- */
@@ -612,7 +804,9 @@ async function loadProducts(){
 async function saveProduct(i, field, val){
   const { error } = await sb.from('products').update({ [field]: val }).eq('id', products[i].id);
   if(error) return showToast('儲存失敗');
-  products[i][field] = val; showToast('已儲存，前台會同步');
+  products[i][field] = val;
+  showToast('已儲存，前台會同步');
+  if(field === 'name') renderBom();
 }
 async function removeProduct(i){
   if(!confirm('確定刪除「'+products[i].name+'」？舊訂單的紀錄不會受影響。')) return;
@@ -628,7 +822,9 @@ async function addProduct(){
     description:'', price:0, active:false, sort_order:(products.length+1)
   });
   if(error) return showToast('新增失敗：代號可能重複了');
-  showToast('已新增，記得填好後勾選上架'); loadProducts();
+  showToast('已新增，記得到「用料設定」設定扣料');
+  await loadProducts();
+  renderBom();
 }
 
 /* ---------- 優惠券 ---------- */
