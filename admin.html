@@ -490,6 +490,22 @@
       </div>
       <div class="stat-row" id="passportStats"></div>
 
+      <!-- 護照外觀：背景照片 -->
+      <h2 style="font-family:'Space Grotesk',sans-serif;font-size:14px;margin:24px 0 4px;">
+        護照外觀 · 背景照片
+      </h2>
+      <div class="sub" style="margin-bottom:12px;">
+        前台風味護照卡片背後會顯示這張照片（森林、產地、店內環境都可以）。貼上網址、按儲存就會套用，前台重新整理就會看到；留空並儲存則改回內建的預設森林照片。
+      </div>
+      <div class="field-inline">
+        <input type="text" id="ppBgUrl" placeholder="https://... 圖片網址"
+               style="flex:1;min-width:260px;padding:8px 11px;border:1px solid var(--line);
+                      border-radius:2px;font-family:inherit;font-size:13px;">
+        <button class="btn" onclick="savePpBgUrl()">儲存</button>
+        <button class="btn ghost" onclick="clearPpBgUrl()">改回預設</button>
+      </div>
+      <div id="ppBgPreviewWrap" style="margin-top:12px;"></div>
+
       <!-- 隱藏獎勵規則 -->
       <h2 style="font-family:'Space Grotesk',sans-serif;font-size:14px;margin:24px 0 4px;">
         隱藏獎勵規則
@@ -1345,6 +1361,7 @@ function targetOptions(scope){
 }
 
 async function loadPassport(){
+  loadPpBgSetting();   // 跟獎勵規則獨立，不管下面有沒有讀成功都要跑
   const [a, b] = await Promise.all([
     sb.from('reward_rules').select('*').order('id'),
     sb.from('reward_grants').select('*').order('granted_at', { ascending:false })
@@ -1360,6 +1377,46 @@ async function loadPassport(){
   renderGrants();
   renderPassportStats();
   renderMemberPicker();
+}
+
+/* ---------- 護照外觀：背景照片（site_settings） ---------- */
+const PP_BG_KEY = 'passport_bg_photo_url';
+
+async function loadPpBgSetting(){
+  const el = document.getElementById('ppBgUrl');
+  if(!el) return;
+  const { data, error } = await sb.from('site_settings')
+    .select('*').eq('key', PP_BG_KEY).maybeSingle();
+  if(error){
+    document.getElementById('ppBgPreviewWrap').innerHTML =
+      `<div class="sub">尚未建立設定資料表，請先到 Supabase 執行 site-settings.sql</div>`;
+    return;
+  }
+  el.value = (data && data.value) || '';
+  renderPpBgPreview();
+}
+function renderPpBgPreview(){
+  const url = document.getElementById('ppBgUrl').value.trim();
+  const wrap = document.getElementById('ppBgPreviewWrap');
+  if(!url){ wrap.innerHTML = `<div class="sub">目前使用前台內建的預設照片</div>`; return; }
+  wrap.innerHTML =
+    `<img src="${esc(url)}" alt="背景照片預覽"
+       style="width:220px;height:140px;object-fit:cover;border:1px solid var(--line);
+              border-radius:4px;display:block;"
+       onerror="this.replaceWith(Object.assign(document.createElement('div'),
+         {className:'sub', textContent:'這個網址讀不到圖片，確認一下網址是否正確'}))">`;
+}
+async function savePpBgUrl(){
+  const url = document.getElementById('ppBgUrl').value.trim();
+  const { error } = await sb.from('site_settings')
+    .upsert({ key: PP_BG_KEY, value: url }, { onConflict: 'key' });
+  if(error) return showToast('儲存失敗：' + error.message);
+  showToast('已套用，前台重新整理後就會看到');
+  renderPpBgPreview();
+}
+async function clearPpBgUrl(){
+  document.getElementById('ppBgUrl').value = '';
+  await savePpBgUrl();
 }
 
 function renderPassportStats(){

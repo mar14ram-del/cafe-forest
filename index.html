@@ -40,6 +40,7 @@
   html{scroll-behavior:smooth;}
   body{
     margin:0;
+    overflow-x:hidden;   /* 護照背景會延伸到 100vw，避免因此多出微幅橫向捲軸 */
     background:
       radial-gradient(120% 60% at 50% 0%, #FFFFFF 0%, var(--paper-100) 55%, var(--paper-200) 100%)
       fixed;
@@ -109,19 +110,33 @@
   }
 
   /* ---------- 風味護照 ---------- */
-  /* 外框：森林照片本尊，露出一圈當相框邊；.pp-sheet 是疊在上面的紙卡，
-     文字都寫在紙卡上，不管照片明暗都維持好讀。 */
-  .pp-card{
-    background:var(--pp-forest-photo) center 38% / cover no-repeat;
-    background-color:var(--wood);       /* 照片載入失敗時的備援底色 */
-    border:1px solid var(--line);border-radius:6px;
-    padding:12px;position:relative;overflow:hidden;
+  /* 照片是滿版的，跳出 .wrap 660px 的寬度限制，延伸到畫面最左最右。
+     這個 trick 靠 left:50%+margin:-50vw 把元素重新對齊「視窗」中心，
+     不受外層容器寬度影響；body 開 overflow-x:hidden 防止因此多出的
+     微幅捲軸。 */
+  .pp-fullbleed{
+    position:relative;left:50%;right:50%;
+    margin-left:-50vw;margin-right:-50vw;width:100vw;
+    padding:28px 20px 34px;
+    background-color:var(--wood);          /* 照片載入失敗時的備援底色 */
+    background-image:var(--pp-forest-photo);
+    background-size:cover;background-position:center 38%;background-repeat:no-repeat;
   }
+  .pp-fullbleed-inner{max-width:660px;margin:0 auto;}
+
+  /* 護照卡片：毛玻璃卡片，疊在滿版照片正上方，看得到樹的輪廓但字還是清楚 */
   .pp-sheet{
-    background:linear-gradient(180deg,#FFFFFF,var(--paper-50));
-    border:1px solid var(--line);border-radius:3px;
+    background:rgba(253,252,250,.6);
+    -webkit-backdrop-filter:blur(18px) saturate(1.15);
+    backdrop-filter:blur(18px) saturate(1.15);
+    border:1px solid rgba(255,255,255,.55);
+    border-radius:4px;
     padding:20px 20px 22px;position:relative;overflow:hidden;
-    box-shadow:0 8px 26px rgba(30,26,18,.22);
+    box-shadow:0 10px 34px rgba(30,26,18,.18);
+  }
+  /* 不支援毛玻璃模糊的瀏覽器，改用較不透明的底色，維持文字可讀性 */
+  @supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
+    .pp-sheet{background:rgba(253,252,250,.94);}
   }
   .pp-sheet::before{
     content:'';position:absolute;top:0;left:0;right:0;height:2px;
@@ -669,7 +684,11 @@
   <!-- 風味護照：頁面最上方 -->
   <section id="passportSection">
     <h2 class="section-title">風味護照</h2>
-    <div id="passportBox"></div>
+    <div class="pp-fullbleed">
+      <div class="pp-fullbleed-inner">
+        <div id="passportBox"></div>
+      </div>
+    </div>
   </section>
 
   <section>
@@ -804,6 +823,19 @@ async function init(){
   }
   await Promise.all([loadProducts(), loadPayments()]);
   restorePassport();
+  loadPassportBgPhoto();   // 不擋主要流程，讀到後台自訂的背景照片就換上
+}
+
+/* 護照背景照片：預設用 CSS 變數裡內建的那張，
+   如果後台 site_settings 有設定，就用後台設定的覆蓋過去。 */
+async function loadPassportBgPhoto(){
+  try{
+    const { data, error } = await sb.from('site_settings')
+      .select('*').eq('key', 'passport_bg_photo_url').maybeSingle();
+    if(error || !data || !data.value) return;   // 沒建表或沒設定，就維持內建預設，不影響其他功能
+    const safeUrl = String(data.value).trim().replace(/['"\\]/g, '');
+    if(safeUrl) document.documentElement.style.setProperty('--pp-forest-photo', `url('${safeUrl}')`);
+  }catch(e){ /* 讀不到就用內建的預設照片 */ }
 }
 
 let tags = [];          // 所有標籤
